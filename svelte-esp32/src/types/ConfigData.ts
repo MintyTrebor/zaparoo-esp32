@@ -52,6 +52,7 @@ export interface ConfigData {
   PN532_module: boolean;
   zapWsPath: string;
   serialOnly: boolean;
+  defaultImgPath: string;
 };
 
 export interface UIDExtdRecord {
