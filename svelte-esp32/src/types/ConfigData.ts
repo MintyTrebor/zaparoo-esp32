@@ -53,6 +53,7 @@ export interface ConfigData {
   zapWsPath: string;
   serialOnly: boolean;
   defaultImgPath: string;
+  deviceType: string;
 };
 
 export interface UIDExtdRecord {

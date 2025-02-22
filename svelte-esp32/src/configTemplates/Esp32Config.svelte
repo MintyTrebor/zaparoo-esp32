@@ -23,6 +23,7 @@
       EspUtils.updateConfig(update);
     };
 </script>
+{#if config.deviceType != "Lilygo"}
 <form on:submit={handleSubmit} class="row g-4">
   <div class="col-12 col-md-6">
     <div class="input-group">
@@ -112,7 +113,38 @@
       </div>
     </div>
   </div>
-
   <button type="submit" class="btn btn-primary mt-3">Save</button>
 </form>
+{/if}
+{#if config.deviceType == "Lilygo"}
+<form on:submit={handleSubmit} class="row g-3">
+  <div class="col-12">
+    <div class="input-group">
+      <div class="input-group-text col-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="enableLaunchLED" bind:checked={config.launchLedEnabled}/>
+          <label class="form-check-label" for="enableLaunchLED">Launch LED</label>
+        </div>
+      </div>
+      <div class="input-group-text  col-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="enablePwrLED" bind:checked={config.pwrLedEnabled}/>
+          <label class="form-check-label" for="enablePwrLED">Power LED</label>
+        </div>
+      </div>
+      <div class="input-group-text  col-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="enableRumbleLED" bind:checked={config.motorEnabled}/>
+          <label class="form-check-label" for="enableRumbleLED">Rumble Motor</label>
+        </div>
+      </div>
+      <div class="form-floating col-3">
+        <input type="number" class="form-control" id="pinMotor" placeholder="32" bind:value={config.motorPin} disabled={!config.motorEnabled} />
+        <label for="pinMotor">GPIO PIN</label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary mt-3">Save</button>
+</form>
+{/if}
 

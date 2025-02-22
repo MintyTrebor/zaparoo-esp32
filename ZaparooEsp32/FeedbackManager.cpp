@@ -45,6 +45,12 @@ void FeedbackManager::init(Preferences* prefs, String devType) {
     createUidMappingFile();
     if(deviceType == "Lilygo"){
       screenManager.init(defaultImgPath);
+      //setting defaults for this device as they should never be changed by the user
+      audioEnabled = true;
+      sdCardEnabled = true;
+      i2sBclkPin = BOARD_VOICE_BCLK;
+      i2sLrcPin = BOARD_VOICE_LRCLK;
+      i2sDoutPin = BOARD_VOICE_DIN;
     }
 }
 

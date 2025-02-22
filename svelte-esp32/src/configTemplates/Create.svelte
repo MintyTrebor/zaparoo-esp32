@@ -12,6 +12,8 @@
   let dialogWait: HTMLDialogElement;
   let uidRecord: UIDExtdRecord = UIDUtils.getBlank();
   let lastUIDVal : string = "";
+  let config: ConfigData = EspUtils.getBlank();
+  EspUtils.config().subscribe(value=> config = value);
   UIDUtils.UIDRecord().subscribe(value=> tempUID(value));
   ZapUtils.zapSrcRes().subscribe(value=> zapSrchRes = value);
   ZapUtils.indexedSystemsList().subscribe(value=> zapSysList = value);
@@ -59,16 +61,6 @@
 
   function settingsIsChanged(currSet: ConfigData){
     zapSvsList = ZapUtils.getActiveSourceList();
-    //monitors for changes to settings and reloads SourceList
-    /*if(currSet.steamIp != "" || currSet.zapIp != ""){
-      zapSvsList = ZapUtils.getActiveSourceList();
-    }
-    if(currSet.steamEnabled || currSet.zapEnabled){
-      zapSvsList = ZapUtils.getActiveSourceList();
-    }
-    if(!currSet.steamEnabled || !currSet.zapEnabled){
-      zapSvsList = ZapUtils.getActiveSourceList();
-    }  */  
   }
 
   function getSystems(){
@@ -252,6 +244,7 @@
           </div>
         </div>
         <div class="input-group mt-3">
+          {#if config.audioEnabled}
           <div class="col-4">
             <label for="searchQry">Launch Audio Path</label>
             <input type="text" class="form-control" id="aLauchP" bind:value={audLaunchP}/>
@@ -260,10 +253,13 @@
             <label for="searchQry">Remove Audio Path</label>
             <input type="text" class="form-control" id="aRemoveP" bind:value={audRemoveP}/>
           </div>
+          {/if}
+          {#if config.deviceType == "Lilygo"}
           <div class="col-4">
             <label for="searchQry">JPEG Path</label>
             <input type="text" class="form-control" id="aRemoveP" bind:value={picLaunchP}/>
           </div>
+          {/if}
         </div>
       {/if}
     {/if}

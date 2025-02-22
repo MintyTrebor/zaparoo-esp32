@@ -19,7 +19,8 @@
         buzzOnError: config.buzzOnError,
         buzzOnRemove: config.buzzOnRemove,
         sdCardEnabled: config.sdCardEnabled,
-        audioGain: config.audioGain
+        audioGain: config.audioGain,
+        defaultImgPath: CommonUtils.validateAudioPath(config.defaultImgPath)
       };
       EspUtils.updateConfig(update);
     };
@@ -27,6 +28,7 @@
 <div class="text-center">
   <h2>ESP32 Defaults</h2>
 </div>
+<br>
 <form on:submit={handleSubmit} class="row g-4">
   {#if config.motorEnabled}
   <div class="col-12">
@@ -83,12 +85,25 @@
     <div class="d-flex flex-column flex-md-row justify-content-center">
       <div class="input-group-text col-12 col-md-4">
         <div class="form-floating">
-          <input type="number" class="form-control" step=".1" id="defAudioGain" placeholder="0.4" bind:value={config.audioGain}/>
-          <label for="defAudioGain">Audio Gain (0.4-4)</label>
+          <input type="number" class="form-control" step="1" id="defAudioGain" placeholder="21" bind:value={config.audioGain}/>
+          <label for="defAudioGain">Audio Gain (0 - 21)</label>
         </div>
       </div>
     </div>
   </div>
+    {#if config.deviceType == "Lilygo"}
+    <div class="col-12">
+      <div class="d-flex flex-column flex-md-row justify-content-center">
+        <div class="input-group-text col-12 col-md-4">
+          <div class="form-floating">
+            <input type="text" class="form-control" id="defImgPath" placeholder="/" bind:value={config.defaultImgPath}/>
+            <label for="defAudioGain">Default Image Path</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    {/if}
+
   {/if}
   {#if config.motorEnabled || config.audioEnabled}
   <button type="submit" class="btn btn-primary mt-3">Save</button>

@@ -324,7 +324,8 @@ void getWebConfigData() {
   configData["data"]["serialOnly"] = preferences.getBool("serialOnly", false);
   configData["data"]["steamIp"] = preferences.getString("steamIp", "steamOS.local");
   configData["data"]["PN532_module"] = isPN532;
-  configData["data"]["zapWsPath"] = ZaparooLaunchApi::wsPath; 
+  configData["data"]["zapWsPath"] = ZaparooLaunchApi::wsPath;
+  configData["data"]["deviceType"] = deviceType;
   cmdClients(configData);
 }
 
