@@ -5,10 +5,6 @@
 #include <Preferences.h>
 #include <ArduinoJson.h>
 #include <SPI.h>
-#include <AudioFileSourceLittleFS.h>
-#include "AudioFileSourceSD.h"
-#include <AudioOutputI2S.h>
-#include <AudioGeneratorMP3.h>
 #include <LittleFS.h>
 #include <ESPWebFileManager.h>
 #include <NfcAdapter.h>
@@ -20,18 +16,27 @@
 #include "ZaparooScanner.cpp"
 #include "FeedbackManager.h"
 
+
+
 #ifdef PN532
 #include "scanners/ZaparooPN532Scanner.cpp"
 PN532_I2C pn532_i2c(Wire);
+String deviceType = "PN532";
+#endif
+
+#ifdef Lilygo
+#include "scanners/ZaparooPN532Scanner.cpp"
+PN532_I2C pn532_i2c(Wire);
+String deviceType = "Lilygo";
 #endif
 
 #ifdef RC522
 #include "scanners/ZaparooRC522Scanner.cpp"
-MFRC522 mfrc522(SS_PIN, RST_PIN);
+MFRC522 mfrc522(BOARD_SD_CS, RST_PIN);
+String deviceType = "RC522";
 #endif
 
 //Common Setup
-AudioOutputI2S* out;
 ESPWebFileManager* fileManager;
 Preferences preferences;
 AsyncWebServer server(80);
@@ -39,6 +44,7 @@ AsyncWebSocket ws1("/ws");
 ZaparooLaunchApi ZapClient;
 ZaparooScanner* tokenScanner = NULL;
 FeedbackManager feedback;
+
 
 //globals
 String ZAP_URL = "ws://<replace>:7497" + String(ZaparooLaunchApi::wsPath);
@@ -172,9 +178,15 @@ void connectWifi() {
   
   int retries = 30;
   while (WiFi.status() != WL_CONNECTED && retries--) {
-    feedback.wifiLedOn();
-    delay(500);
-    feedback.wifiLedOff();
+    if(deviceType == "Lilygo"){
+      feedback.lilygoWifiLed();
+      delay(250);
+      feedback.lilygoWifiLed();
+    } else{
+      feedback.wifiLedOn();
+      delay(500);
+      feedback.wifiLedOff();
+    }    
     Serial.print(".");
   }
   if (WiFi.status() != WL_CONNECTED) {
@@ -200,14 +212,14 @@ void connectWifi() {
   feedback.wifiLedOn();
 }
 
-void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile) {
+void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile, String& launchJPEGFile) {
   String tmpLaunchCmd = launchCmd;
   JsonDocument cmdData;
   cmdData["msgType"] = "writeResults";
   tmpLaunchCmd.replace("launch_cmd::", "");
   notifyClients("Launch Cmd Written: " + launchCmd, "log");
   if (tokenScanner->tokenPresent()) {
-    bool success = tokenScanner->writeLaunch(launchCmd, audioLaunchFile, audioRemoveFile);
+    bool success = tokenScanner->writeLaunch(launchCmd, audioLaunchFile, audioRemoveFile, launchJPEGFile);
     if (success) {
       cmdData["data"]["isSuccess"] = true;
       cmdData["data"]["isCardDetected"] = true;
@@ -373,7 +385,8 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       String launchData = root["data"]["launchData"].as<String>();
       String audioLaunchPath = root["data"]["audioLaunchPath"].as<String>();
       String audioRemovePath = root["data"]["audioRemovePath"].as<String>();
-      writeTagLaunch(launchData, audioLaunchPath, audioRemovePath);
+      String launchJPEGPath = root["data"]["launchJPEGPath"].as<String>();
+      writeTagLaunch(launchData, audioLaunchPath, audioRemovePath, launchJPEGPath);
   } else if (command == "get_Current_Config") {
       getWebConfigData();
   } else if (command == "set_Current_Config") {
@@ -484,8 +497,26 @@ bool readScanner() {
 
 void setup() {
   Serial.begin(115200);
-  SPI.begin();
+#ifdef Lilygo
+  pinMode(DISPLAY_CS, OUTPUT);
+  digitalWrite(DISPLAY_CS, HIGH);
+  pinMode(BOARD_SD_CS, OUTPUT);
+  digitalWrite(BOARD_SD_CS, HIGH);
+  pinMode(BOARD_LORA_CS, OUTPUT);
+  digitalWrite(BOARD_LORA_CS, HIGH);
+  pinMode(BOARD_PWR_EN, OUTPUT);
+  digitalWrite(BOARD_PWR_EN, HIGH);
+  SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+  Wire.setPins(BOARD_I2C_SDA, BOARD_I2C_SCL);
+  Wire.begin();
+  ZaparooPN532Scanner* pnScanner = new ZaparooPN532Scanner();
+  pnScanner->setConfig(pn532_i2c);
+  pnScanner->setResetPin(PN532_RST_PIN);
+  tokenScanner = pnScanner;
+  isPN532 = true;
+#endif
 #ifdef PN532
+  SPI.begin();
   Wire.begin();
   ZaparooPN532Scanner* pnScanner = new ZaparooPN532Scanner();
   pnScanner->setConfig(pn532_i2c);
@@ -494,6 +525,7 @@ void setup() {
   isPN532 = true;
 #endif
 #ifdef RC522
+  SPI.begin();
   ZaparooRC522Scanner* rcScanner = new ZaparooRC522Scanner();
   rcScanner->setConfig(mfrc522);
   mfrc522.PCD_Init();
@@ -505,10 +537,10 @@ void setup() {
     tokenScanner->reset();
   }
   preferences.begin("qrplay", false);
-  feedback.init(&preferences);
+  feedback.init(&preferences, deviceType);
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
-  
+
   //set globals to reduce the number of call to preference library (performance)
   zapIp = preferences.getString("zapIp", "mister.local");
   zapEnabled = preferences.getBool("zapEnabled", true);
@@ -531,7 +563,6 @@ void setup() {
   }
   fileManager->setServer(&server);
   fileManager->begin();
-  feedback.createUidMappingFile();
 }
 
 void loop() {

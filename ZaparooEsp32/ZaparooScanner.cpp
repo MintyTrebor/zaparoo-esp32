@@ -29,7 +29,7 @@ public:
     virtual void clearCache(){}
 
     // Write a token to the given device
-    virtual bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile) {return false;}
+    virtual bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile, String& launchJPEGFile) {return false;}
 
     // Returns true if the device supports writing
     virtual bool supportsWrite() const { return false; }

@@ -71,6 +71,9 @@ public:
           if(recordCount > 2){
             token->setRemoveAudio(parseNdfMessage(message, token , 2).c_str());
           }
+          if (recordCount > 3) {
+            token->setLaunchJPEG(parseNdfMessage(message, token, 3).c_str());
+          }
         }
         return token;
     }
@@ -92,7 +95,7 @@ public:
     }
 
     // Write a token to the given device
-    bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile) override {
+    bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile, String& launchJPEGFile) override {
 		if (nfc->tagPresent()) {
           if(nfc->erase()){
             NdefMessage message = NdefMessage();
@@ -104,6 +107,11 @@ public:
             }
             if(audioRemoveFile.length() > 0){
               message.addTextRecord(audioRemoveFile.c_str());
+            } else {
+              message.addTextRecord("");
+            }
+            if (launchJPEGFile.length() > 0) {
+              message.addTextRecord(launchJPEGFile.c_str());
             } else {
               message.addTextRecord("");
             }

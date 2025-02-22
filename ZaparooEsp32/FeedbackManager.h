@@ -1,20 +1,25 @@
 #pragma once
-
-#include <AudioFileSourceLittleFS.h>
-#include "AudioFileSourceSD.h"
-#include <AudioOutputI2S.h>
-#include <AudioGeneratorMP3.h>
+#include "Audio.h"
 #include <LittleFS.h>
 #include <Preferences.h>
 #include <ArduinoJson.h>
 #include "ZaparooToken.h"
+#include "ScreenManager.h"
+#include <FastLED.h>
 
 class FeedbackManager {
 private:
     Preferences* preferences;
+    ScreenManager screenManager;
     void setupPins();
+    void createUidMappingFile();
+    void ledRingRed();
+    void ledRingBlue();
+    void ledRingGreen();
+    void ledRingOff();
+    
 public:
-    float audioGain = 1.0;
+    float audioGain = 21.0;
     bool wifiLedEnabled = false;
     bool motorEnabled = false;
     bool launchLedEnabled = false;
@@ -31,8 +36,8 @@ public:
     String defaultLaunchAudio = "";
     String defaultRemoveAudio = "";
     String defaultErrorAudio = "";
-
-    AudioOutputI2S* out = nullptr;
+    String defaultImgPath = "";
+    String deviceType = "";
 
     int motorPin = -1;
     int launchLedPin = -1;
@@ -44,7 +49,7 @@ public:
 
     FeedbackManager();
     ~FeedbackManager();
-    void init(Preferences* prefs);
+    void init(Preferences* prefs, String devType);
     void update(JsonDocument& doc);
     void set(JsonDocument& doc);
     void motorOn(int predelay = 0);
@@ -61,5 +66,5 @@ public:
     int playAudio(const char* audioPath);
     void cardInsertedActions(ZaparooToken* obj);
     void cardRemovedActions(ZaparooToken* obj);
-    void createUidMappingFile();
+    void lilygoWifiLed();    
 };

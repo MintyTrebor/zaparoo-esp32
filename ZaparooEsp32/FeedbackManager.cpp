@@ -4,19 +4,15 @@
 #define UID_MAP_FILE "/uidExtdRecord.json"
 
 FeedbackManager::FeedbackManager() {
-    out = nullptr;
 }
 
 FeedbackManager::~FeedbackManager() {
-    if (out) {
-        delete out;
-    }
 }
 
 //Prefences has a 14 character limit for key
-void FeedbackManager::init(Preferences* prefs) {
+void FeedbackManager::init(Preferences* prefs, String devType) {
     preferences = prefs;
-    audioGain = preferences->getFloat("audioGain", 1.0);
+    audioGain = preferences->getFloat("audioGain", 21.0);
     wifiLedEnabled = preferences->getBool("wifiLed", false);
     motorEnabled = preferences->getBool("motor", false);
     launchLedEnabled = preferences->getBool("launchLed", false);
@@ -32,19 +28,24 @@ void FeedbackManager::init(Preferences* prefs) {
     defaultLaunchAudio = preferences->getString("launchAudio", "");
     defaultRemoveAudio = preferences->getString("removeAudio", "");
     defaultErrorAudio = preferences->getString("errorAudio", "");
-
+    defaultImgPath = preferences->getString("defImgPath", "");
+    deviceType = devType;
+    
     motorPin = preferences->getInt("motorPin", 32);
     launchLedPin = preferences->getInt("launchLedPin", 33);
     wifiLedPin = preferences->getInt("wifiLedPin", 2);
     pwrLedPin = preferences->getInt("pwrLedPin", 15);
 
     // Read the I2S pins from preferences but don't save them in member variables
-    i2sBclkPin = preferences->getInt("i2sBclkPin", 27);
-    i2sLrcPin = preferences->getInt("i2sLrcPin", 26);
-    i2sDoutPin = preferences->getInt("i2sDoutPin", 25);
+    i2sBclkPin = preferences->getInt("i2sBclkPin", BOARD_VOICE_BCLK);
+    i2sLrcPin = preferences->getInt("i2sLrcPin", BOARD_VOICE_LRCLK);
+    i2sDoutPin = preferences->getInt("i2sDoutPin", BOARD_VOICE_DIN);
     setupPins();
     delay(500);
-
+    createUidMappingFile();
+    if(deviceType == "Lilygo"){
+      screenManager.init(defaultImgPath);
+    }
 }
 
 void FeedbackManager::createUidMappingFile(){
@@ -77,28 +78,26 @@ void FeedbackManager::setupPins() {
     pinMode(motorPin, OUTPUT);
   }
   if (wifiLedEnabled) {
-    pinMode(wifiLedPin, OUTPUT);
+    if(deviceType != "Lilygo"){pinMode(wifiLedPin, OUTPUT);}
   }
   if (launchLedEnabled) {
-    pinMode(launchLedPin, OUTPUT);
+    if(deviceType != "Lilygo"){pinMode(launchLedPin, OUTPUT);}
   }
   if (pwrLedEnabled) {
-    pinMode(pwrLedPin, OUTPUT);
-    digitalWrite(pwrLedPin, HIGH);
-  }
-  if (audioEnabled) {
-    delete out;
-    out = NULL;
-    out = new AudioOutputI2S();
-    out->SetPinout(i2sBclkPin, i2sLrcPin, i2sDoutPin);
-    out->SetChannels(1);
-    out->SetGain(audioGain);
-    if (sdCardEnabled) {
-      if (!SD.begin(SS_PIN)) {
-        Serial.println(F("failed to do SD Card"));
-      }
+    if(deviceType != "Lilygo"){
+      pinMode(pwrLedPin, OUTPUT);
+      digitalWrite(pwrLedPin, HIGH);
+    }
+    if(deviceType == "Lilygo"){
+      ledRingRed();
     }
   }
+  if (sdCardEnabled || deviceType == "Lilygo") {
+    if (!SD.begin(BOARD_SD_CS)) {
+      Serial.println(F("failed to do SD Card"));
+    }
+  }
+  
 }
 
 void FeedbackManager::update(JsonDocument& doc) {
@@ -169,6 +168,10 @@ void FeedbackManager::update(JsonDocument& doc) {
         defaultErrorAudio = doc["data"]["defaultErrorAudio"].as<String>();
         preferences->putString("errorAudio", defaultErrorAudio);
     }
+    if (doc["data"].containsKey("defaultImgPath")) {
+        defaultImgPath = doc["data"]["defaultImgPath"].as<String>();
+        preferences->putString("defImgPath", defaultImgPath);
+    }
 
     // Pin assignments - saved to Preferences
     if (doc["data"].containsKey("motorPin")) {
@@ -219,6 +222,7 @@ void FeedbackManager::set(JsonDocument& doc) {
     doc["data"]["defaultLaunchAudio"] = defaultLaunchAudio;
     doc["data"]["defaultRemoveAudio"] = defaultRemoveAudio;
     doc["data"]["defaultErrorAudio"] = defaultErrorAudio;
+    doc["data"]["defaultImgPath"] = defaultImgPath;
     doc["data"]["motorPin"] = motorPin;
     doc["data"]["launchLedPin"] = launchLedPin;
     doc["data"]["wifiLedPin"] = wifiLedPin;
@@ -244,30 +248,109 @@ void FeedbackManager::motorOff(int predelay) {
 }
 
 void FeedbackManager::launchLedOn(int predelay) {
-    if (launchLedEnabled) {
+    if (launchLedEnabled && deviceType != "Lilygo") {
         delay(predelay);
         digitalWrite(launchLedPin, HIGH);
+    }
+    if (launchLedEnabled && deviceType == "Lilygo") {
+        delay(predelay);
+        ledRingGreen();
     }
 }
 
 void FeedbackManager::launchLedOff(int predelay, int postDelay) {
-    if (launchLedEnabled) {
-        delay(predelay);
-        digitalWrite(launchLedPin, LOW);
-        delay(postDelay);
+    if (launchLedEnabled && deviceType != "Lilygo") {
+      delay(predelay);
+      digitalWrite(launchLedPin, LOW);
+      delay(postDelay);
+    }
+    if (launchLedEnabled && deviceType == "Lilygo") {
+      delay(predelay);
+      if (pwrLedEnabled) {
+        ledRingRed();
+      }else {
+        ledRingOff();
+      }
+      delay(postDelay);
     }
 }
 
 void FeedbackManager::wifiLedOn() {
-    if (wifiLedEnabled) {
+    if (wifiLedEnabled && deviceType != "Lilygo") {
         digitalWrite(wifiLedPin, HIGH);
     }
 }
 
 void FeedbackManager::wifiLedOff() {
-    if (wifiLedEnabled) {
+    if (wifiLedEnabled && deviceType != "Lilygo") {
         digitalWrite(wifiLedPin, LOW);
     }
+}
+
+void FeedbackManager::lilygoWifiLed() {
+  CRGB leds[NUM_LEDS];
+  FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setBrightness(50);
+  for(int i = 0; i < NUM_LEDS; i++){
+    leds[i] = CRGB::Blue;
+    for(int j = i+1; j < NUM_LEDS; j++){
+      leds[j] = CRGB::Red;
+    }
+    FastLED.show();
+    delay(50);
+  }
+  delay(100);
+  if(pwrLedEnabled){
+    ledRingRed(); 
+  }
+  else {
+    ledRingOff();
+  }
+}
+
+void FeedbackManager::ledRingRed() {
+    CRGB leds[NUM_LEDS];
+    FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(50);
+    for(int i = 0; i < NUM_LEDS; i++){
+        leds[i] = CRGB::Red;
+    }
+    FastLED.show();
+}
+
+void FeedbackManager::ledRingGreen() {
+    CRGB leds[NUM_LEDS];
+    FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(50);
+    for(int i = 0; i < NUM_LEDS; i++){
+      leds[i] = CRGB::Green;
+      for(int j = i+1; j < NUM_LEDS; j++){
+        leds[j] = CRGB::Black;
+      }
+      FastLED.show();
+      delay(50);
+    }
+    
+}
+
+void FeedbackManager::ledRingBlue() {
+    CRGB leds[NUM_LEDS];
+    FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(50);
+    for(int i = 0; i < NUM_LEDS; i++){
+        leds[i] = CRGB::Blue;
+    }
+    FastLED.show();
+}
+
+void FeedbackManager::ledRingOff() {
+    CRGB leds[NUM_LEDS];
+    FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(0);
+    for(int i = 0; i < NUM_LEDS; i++){
+        leds[i] = CRGB::Black;
+    }
+    FastLED.show();
 }
 
 void FeedbackManager::expressError(int code) {
@@ -378,31 +461,18 @@ int FeedbackManager::playAudio(const char* audioPath) {
         delay(1000);
         return 0;
     }
-
-    AudioFileSource* file = nullptr;
+    Audio audio;  
+    audio.setPinout(BOARD_VOICE_BCLK, BOARD_VOICE_LRCLK, BOARD_VOICE_DIN);
+    audio.setVolume(audioGain);
     if (sdCardEnabled) {
-        AudioFileSourceSD* source = new AudioFileSourceSD(audioPath);
-        file = source;
+        audio.connecttoFS(SD, audioPath);
     } else {
-        AudioFileSourceLittleFS* source = new AudioFileSourceLittleFS(audioPath);
-        file = source;
+        audio.connecttoFS(SPIFFS, audioPath);
     }
-
-    if (file->getSize() == 0) {
-        delete file;
-        file = nullptr;
-        return 1;
+    audio.loop();
+    while(audio.isRunning()){
+      audio.loop();
     }
-
-    AudioGeneratorMP3* mp3 = new AudioGeneratorMP3();
-    mp3->begin(file, out);
-    while (mp3->loop()) {}
-    mp3->stop();
-
-    delete mp3;
-    mp3 = NULL;
-    delete file;
-    file = NULL;
     return 0;
 }
 
@@ -413,6 +483,12 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
     }
     if (pathToPlay && strlen(pathToPlay) > 0) {
         playAudio(pathToPlay);
+    }
+    if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
+      const char* imgToShow = obj->getLaunchJPEG();
+      if (imgToShow || strlen(imgToShow) > 0) {
+        screenManager.dispJpgImg(imgToShow);
+      }
     }
     if (buzzOnDetect) {
         motorOn(0);
@@ -430,5 +506,8 @@ void FeedbackManager::cardRemovedActions(ZaparooToken* obj) {
     }
     if (buzzOnRemove) {
         motorOff();
+    }
+    if(deviceType == "Lilygo" && resetOnRemove){
+      screenManager.dispDefaultImg(defaultImgPath);
     }
 }

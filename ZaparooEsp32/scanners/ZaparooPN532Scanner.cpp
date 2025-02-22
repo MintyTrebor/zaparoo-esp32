@@ -3,7 +3,7 @@
 #include "../ZaparooToken.h"
 #include <SecData.h>
 #include <Wire.h>
-#include "AudioFileSourceSD.h"
+//#include "AudioFileSourceSD.h"
 #include <PN532_I2C.h>
 #include <PN532.h>
 #include <FS.h>
@@ -53,6 +53,9 @@ public:
         if (recordCount > 2) {
           token->setRemoveAudio(parseNdfMessage(message, token, 2).c_str());
         }
+        if (recordCount > 3) {
+          token->setLaunchJPEG(parseNdfMessage(message, token, 3).c_str());
+        }
       }
     }
     lastId = id;  //Only set on valid reads
@@ -76,7 +79,7 @@ public:
   }
 
   // Write a token to the given device
-  bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile) override {
+  bool writeLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile, String& launchJPEGFile) override {
     if (nfc->tagPresent()) {
       if(nfc->erase()){
         NdefMessage message = NdefMessage();
@@ -88,6 +91,11 @@ public:
         }
         if (audioRemoveFile.length() > 0) {
           message.addTextRecord(audioRemoveFile.c_str());
+        } else {
+          message.addTextRecord("");
+        }
+        if (launchJPEGFile.length() > 0) {
+          message.addTextRecord(launchJPEGFile.c_str());
         } else {
           message.addTextRecord("");
         }
@@ -124,7 +132,7 @@ private:
   const String parseNdfMessage(NdefMessage& message, ZaparooToken* currentToken, int recordIndex) {
     NdefRecord record = message.getRecord(recordIndex);
     int payloadLength = record.getPayloadLength();
-    byte payload[payloadLength];
+    uint8_t payload[payloadLength];
     record.getPayload(payload);
     String payloadAsString = "";
     for (int i = 3; i < payloadLength; i++) {
@@ -139,7 +147,7 @@ private:
   }
 
   String getTagUID() {
-    byte* uid = nfc->uid;
+    uint8_t* uid = nfc->uid;
     uint8_t uidLength = nfc->uidLength;
     char uidString[2 * uidLength + 1] = { 0 };
     for (unsigned int i = 0; i < uidLength; i++) {

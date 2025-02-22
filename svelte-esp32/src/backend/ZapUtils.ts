@@ -311,18 +311,20 @@ export class ZapUtils{
         LogUtils.notify(`Sent Launch Cmd for: ${launchPath}`);
     }
 
-    static doWriteCard(launchPath: string, aLaunchP: string | null, aRemoveP: string | null){
+    static doWriteCard(launchPath: string, aLaunchP: string | null, aRemoveP: string | null, imgPath: string | null){
         let tmpWRS = this.getBlankWriteState();
         tmpWRS.state = 0;        
         this.writeResultState.set(tmpWRS);
         let newCMD = this.getBlankESPMsg();
         if(!aLaunchP){aLaunchP = ""};
         if(!aRemoveP){aRemoveP = ""};
+        if(!imgPath){imgPath = ""};
         newCMD.cmd = "write_Tag_Launch_Game";
         newCMD.data = {
             launchData: launchPath.trim(),
             audioLaunchPath: aLaunchP,
-            audioRemovePath: aRemoveP
+            audioRemovePath: aRemoveP,
+            launchJPEGPath: imgPath
         }
         //console.log("write cmd: ", newCMD);
         EspUtils.sendMessage(newCMD);

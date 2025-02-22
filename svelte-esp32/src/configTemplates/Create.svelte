@@ -23,6 +23,7 @@
   let selectedGame: string = "";
   let audLaunchP: string | null ;
   let audRemoveP: string | null ;
+  let picLaunchP: string | null ;
   let dialogWrite: HTMLDialogElement;
   let dialogSuccess: HTMLDialogElement;
   let dialogFailure: HTMLDialogElement;
@@ -85,7 +86,8 @@
   function doWrite() {
     if(audLaunchP){audLaunchP = CommonUtils.validateAudioPath(audLaunchP)};
     if(audRemoveP){audRemoveP = CommonUtils.validateAudioPath(audRemoveP)};
-    ZapUtils.doWriteCard(selectedGame, audLaunchP, audRemoveP);
+    if(picLaunchP){picLaunchP = CommonUtils.validateAudioPath(picLaunchP)};
+    ZapUtils.doWriteCard(selectedGame, audLaunchP, audRemoveP, picLaunchP);
     diagWriteClose();
     diagWaitOpen();
   };
@@ -156,6 +158,7 @@
   function diagWriteMapOK() {
     if(audLaunchP){audLaunchP = CommonUtils.validateAudioPath(audLaunchP)};
     if(audRemoveP){audRemoveP = CommonUtils.validateAudioPath(audRemoveP)};
+    if(picLaunchP){picLaunchP = CommonUtils.validateAudioPath(picLaunchP)};
     ZapUtils.doWriteZapScript(lastUIDVal, selectedGame, audLaunchP, audRemoveP);
     dialogScriptStart.close("true");
     UIDUtils.setUIDMode(false);
@@ -249,13 +252,17 @@
           </div>
         </div>
         <div class="input-group mt-3">
-          <div class="col-6">
+          <div class="col-4">
             <label for="searchQry">Launch Audio Path</label>
             <input type="text" class="form-control" id="aLauchP" bind:value={audLaunchP}/>
           </div>
-          <div class="col-6">
+          <div class="col-4">
             <label for="searchQry">Remove Audio Path</label>
             <input type="text" class="form-control" id="aRemoveP" bind:value={audRemoveP}/>
+          </div>
+          <div class="col-4">
+            <label for="searchQry">JPEG Path</label>
+            <input type="text" class="form-control" id="aRemoveP" bind:value={picLaunchP}/>
           </div>
         </div>
       {/if}
