@@ -22,7 +22,11 @@ void ScreenManager::dispDefaultImg(String imgPath){
   tftScr.setRotation(0);
   tftScr.fillScreen(TFT_WHITE);
   if (imgToShow == nullptr || strlen(imgToShow) == 0) {
-    imgToShow = FALL_BACK_DEF_IMG;
+    bool decoded = JpegDec.decodeArray(ZapEspBootLogo, 12545);
+    if(decoded) {
+      jpegRender(0, 0);
+    }
+    return;
   }
   if (SD.exists(imgToShow)) {
     drawSdJpeg(imgToShow, 0, 0);

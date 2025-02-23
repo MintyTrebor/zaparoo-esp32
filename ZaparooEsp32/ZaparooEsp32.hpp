@@ -12,20 +12,23 @@
   //#define BOARD_VOICE_BCLK 27
   //#define BOARD_VOICE_LRCLK 26
   //#define BOARD_VOICE_DIN 25
+  //#define NUM_LEDS 3
   //-----------------------------------------------------------------------
   
   //uncomment for PN532----------------------------------------------------
-  //#define PN532
-  //The SS/SDA and Reset pins of the SD CARD Module using the default SPI GPIO pins of your ESP32
-  //#define BOARD_SD_CS 5
-  //#define RST_PIN 4
-  //The GPIO pin the PN532 RSTPDN Pin is connected to ((***NOT THE PN532 RSTO PIN***)). 
-  //This is essential for stability and recovery after an esp32 soft reset.
-  //#define PN532_RST_PIN 13
-  //Default Audio Pins
-  //#define BOARD_VOICE_BCLK 27
-  //#define BOARD_VOICE_LRCLK 26
-  //#define BOARD_VOICE_DIN 25
+  // #define PN532
+  // //The SS/SDA and Reset pins of the SD CARD Module using the default SPI GPIO pins of your ESP32
+  // #define BOARD_SD_CS 5
+  // #define RST_PIN 4
+  // //The GPIO pin the PN532 RSTPDN Pin is connected to ((***NOT THE PN532 RSTO PIN***)). 
+  // //This is essential for stability and recovery after an esp32 soft reset.
+  // #define PN532_RST_PIN 13
+  // //Default Audio Pins
+  // #define BOARD_VOICE_BCLK 27
+  // #define BOARD_VOICE_LRCLK 26
+  // #define BOARD_VOICE_DIN 25
+  // #define NUM_LEDS 3
+  // #define LED_DATA_PIN 0
   //------------------------------------------------------------------------
 
   //------------------------------------------------------------------------

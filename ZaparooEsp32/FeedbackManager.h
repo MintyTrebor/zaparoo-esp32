@@ -4,13 +4,19 @@
 #include <Preferences.h>
 #include <ArduinoJson.h>
 #include "ZaparooToken.h"
+#include "ZaparooEsp32.hpp"
+
+#ifdef Lilygo
 #include "ScreenManager.h"
 #include <FastLED.h>
+#endif
 
 class FeedbackManager {
 private:
     Preferences* preferences;
+    #ifdef Lilygo
     ScreenManager screenManager;
+    #endif
     void setupPins();
     void createUidMappingFile();
     void ledRingRed();
