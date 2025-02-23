@@ -1,8 +1,6 @@
 #include "ScreenManager.h"
 #include "ZaparooEsp32.hpp"
 
-#define FALL_BACK_DEF_IMG "/ZapEspBootLogo.jpg"
-
 ScreenManager::ScreenManager() {
 }
 
@@ -10,11 +8,11 @@ ScreenManager::~ScreenManager() {
 }
 
 //Prefences has a 14 character limit for key
-void ScreenManager::init(String defImgPath){
+void ScreenManager::init(){
   tftScr.begin();
   tftScr.begin();// Don't know why this has to be done twice but it works!!
   delay(500);
-  dispDefaultImg(defaultImgPath);
+  //dispDefaultImg(defaultImgPath);
 }
 
 void ScreenManager::dispDefaultImg(String imgPath){
@@ -33,6 +31,25 @@ void ScreenManager::dispDefaultImg(String imgPath){
   } else {
     return;
   }  
+}
+
+void ScreenManager::disp1PStart(){
+  bool decoded = JpegDec.decodeArray(PlayerOneStart_jpg, 24024);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+void ScreenManager::disp2PStart(){
+  bool decoded = JpegDec.decodeArray(PlayerTwoStart_jpg, 24097);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+void ScreenManager::dispInsCoin(){
+  bool decoded = JpegDec.decodeArray(InsertCoin_jpg, 9028);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
 }
 
 void ScreenManager::dispJpgImg(const char *imgPath){

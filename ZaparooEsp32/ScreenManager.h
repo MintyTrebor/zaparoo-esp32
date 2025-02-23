@@ -1,6 +1,10 @@
+#pragma once
 #include "libraries/TFT_eSPI/TFT_eSPI.h"
 #include "defBootImg.h"
 #include <JPEGDecoder.h>
+#include "onePlayerStartImg.h"
+#include "twoPlayerStartImg.h"
+#include "insertCoinImg.h"
 
 class ScreenManager {
   private:
@@ -11,7 +15,10 @@ class ScreenManager {
     TFT_eSPI tftScr = TFT_eSPI();
     ScreenManager();
     ~ScreenManager();
-    void init(String defImgPath);
+    void init();
     void dispDefaultImg(String imgPath);
     void dispJpgImg(const char *imgPath);
+    void disp1PStart();
+    void disp2PStart();
+    void dispInsCoin();
 };

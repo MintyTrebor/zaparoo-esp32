@@ -26,8 +26,15 @@ String deviceType = "PN532";
 
 #ifdef Lilygo
 #include "scanners/ZaparooPN532Scanner.cpp"
+#include "ScreenManager.h"
+#include "InputManager.h"
+#include <RotaryEncoder.h>
 PN532_I2C pn532_i2c(Wire);
 String deviceType = "Lilygo";
+ScreenManager scrnMan;
+InputManager inpMan;
+RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
+int lastRotPos = 0;
 #endif
 
 #ifdef RC522
@@ -539,6 +546,16 @@ void setup() {
   }
   preferences.begin("qrplay", false);
   feedback.init(&preferences, deviceType);
+  #ifdef Lilygo
+  scrnMan.init();
+  scrnMan.dispDefaultImg("");
+  feedback.initScreen(&scrnMan);
+  inpMan.init(&scrnMan);
+  pinMode(ENCODER_KEY, INPUT);
+  attachInterrupt(ENCODER_KEY, doRotaryButton, FALLING);
+  attachInterrupt(ENCODER_INA, doRotaryTurn, CHANGE);
+  //attachInterrupt(ENCODER_INB, doRotaryTurn, CHANGE);
+  #endif
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
 
@@ -564,12 +581,48 @@ void setup() {
   }
   fileManager->setServer(&server);
   fileManager->begin();
+  // #ifdef Lilygo
+  // xTaskCreatePinnedToCore (
+  //   loop2,     // Function to implement the task
+  //   "loop2",   // Name of the task
+  //   1000,      // Stack size in bytes
+  //   NULL,      // Task input parameter
+  //   0,         // Priority of the task
+  //   NULL,      // Task handle.
+  //   0          // Core where the task should run
+  // );
+  // #endif
 }
+#ifdef Lilygo
+void doRotaryButton(void){
+  //do button action here
+}
+void doRotaryTurn(void){
+  int currRotPos = encoder.getPosition();
+  if(lastRotPos != currRotPos){
+    inpMan.nextRotation();
+    lastRotPos = currRotPos;
+    encoder.tick();
+  }else{
+    encoder.tick();
+  }
+  String tmpPos = String(currRotPos);
+  Serial.println("EncPos: " + tmpPos);
+}
+#endif
 
 void loop() {
   connectWifi();
   if (!preferences.getBool("enNfcWr", false)) {
     readScanner();
-  }
+  }  
   delay(50);
 }
+// #ifdef Lilygo
+// void loop2(void* pvParameters){
+//   while(1){
+//     encoder.tick();
+//     delay(1);
+//   }
+// }
+// #endif

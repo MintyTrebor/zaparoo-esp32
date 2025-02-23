@@ -43,9 +43,7 @@ void FeedbackManager::init(Preferences* prefs, String devType) {
     setupPins();
     delay(500);
     createUidMappingFile();
-    #ifdef Lilygo
     if(deviceType == "Lilygo"){
-      screenManager.init(defaultImgPath);
       //setting defaults for this device as they should never be changed by the user
       audioEnabled = true;
       sdCardEnabled = true;
@@ -53,8 +51,12 @@ void FeedbackManager::init(Preferences* prefs, String devType) {
       i2sLrcPin = BOARD_VOICE_LRCLK;
       i2sDoutPin = BOARD_VOICE_DIN;
     }
-    #endif
 }
+#ifdef Lilygo
+void FeedbackManager::initScreen(ScreenManager* scrnMgr) {
+  screenManager = scrnMgr;
+}
+#endif
 
 void FeedbackManager::createUidMappingFile(){
   File uidFile;
@@ -497,7 +499,7 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
     if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
       const char* imgToShow = obj->getLaunchJPEG();
       if (imgToShow || strlen(imgToShow) > 0) {
-        screenManager.dispJpgImg(imgToShow);
+        screenManager->dispJpgImg(imgToShow);
       }
     }
     #endif
@@ -520,7 +522,7 @@ void FeedbackManager::cardRemovedActions(ZaparooToken* obj) {
     }
     #ifdef Lilygo
     if(deviceType == "Lilygo" && resetOnRemove){
-      screenManager.dispDefaultImg(defaultImgPath);
+      screenManager->dispDefaultImg(defaultImgPath);
     }
     #endif
 }

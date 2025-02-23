@@ -5,17 +5,17 @@
 #include <ArduinoJson.h>
 #include "ZaparooToken.h"
 #include "ZaparooEsp32.hpp"
+#include <FastLED.h>
 
 #ifdef Lilygo
 #include "ScreenManager.h"
-#include <FastLED.h>
 #endif
 
 class FeedbackManager {
 private:
     Preferences* preferences;
     #ifdef Lilygo
-    ScreenManager screenManager;
+    ScreenManager* screenManager;
     #endif
     void setupPins();
     void createUidMappingFile();
@@ -72,5 +72,8 @@ public:
     int playAudio(const char* audioPath);
     void cardInsertedActions(ZaparooToken* obj);
     void cardRemovedActions(ZaparooToken* obj);
-    void lilygoWifiLed();    
+    void lilygoWifiLed();
+    #ifdef Lilygo
+    void initScreen(ScreenManager* scrnMgr);
+    #endif  
 };
