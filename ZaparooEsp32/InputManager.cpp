@@ -25,11 +25,11 @@ void InputManager::doRotaryTurn(){
   }else{
     encoder->tick();
   }
-  Serial.println(String(currRotPos));
+  //Serial.println(String(currRotPos));
 }
 
 void InputManager::nextRotation(){
-  if(lastScrnPos == 2){
+  if(lastScrnPos == 3){
     lastScrnPos = 0;
   } 
   else {
@@ -43,5 +43,8 @@ void InputManager::nextRotation(){
   }
   if(lastScrnPos == 2){
     screenManager->disp2PStart();
+  }
+  if(lastScrnPos == 3){
+    screenManager->dispNowPlaying();
   }
 }

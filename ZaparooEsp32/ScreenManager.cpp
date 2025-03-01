@@ -11,12 +11,19 @@ ScreenManager::~ScreenManager() {
 void ScreenManager::init(){
   tftScr.begin();
   tftScr.begin();// Don't know why this has to be done twice but it works!!
-  delay(500);
-  //dispDefaultImg(defaultImgPath);
+  delay(500);  
 }
 
-void ScreenManager::dispDefaultImg(String imgPath){
-  const char* imgToShow = imgPath.c_str();
+void ScreenManager::setNowPlayingPath(const char* nowPlayPath){
+  nowPlayingPath = nowPlayPath;
+}
+
+void ScreenManager::setDefImgPath(const char*  defImgPath){
+  defaultImgPath = defImgPath;
+}
+
+void ScreenManager::dispDefaultImg(const char* imgPath){
+  const char* imgToShow = imgPath;
   tftScr.setRotation(0);
   tftScr.fillScreen(TFT_WHITE);
   if (imgToShow == nullptr || strlen(imgToShow) == 0) {
@@ -49,6 +56,18 @@ void ScreenManager::dispInsCoin(){
   bool decoded = JpegDec.decodeArray(InsertCoin_jpg, 9028);
   if(decoded) {
     jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispNowPlaying(){
+  if (defaultImgPath || strlen(defaultImgPath) > 0){
+    if (SD.exists(defaultImgPath)) {
+      drawSdJpeg(defaultImgPath, 0, 0);
+    } else {
+      dispDefaultImg(defaultImgPath);
+    }  
+  }else{
+    dispDefaultImg(defaultImgPath);
   }
 }
 

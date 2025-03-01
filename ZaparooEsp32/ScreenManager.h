@@ -11,14 +11,18 @@ class ScreenManager {
     void jpegRender(int xpos, int ypos);
     void drawSdJpeg(const char *filename, int xpos, int ypos);
   public:
-    String defaultImgPath = "";
+    const char* defaultImgPath = nullptr;
+    const char* nowPlayingPath = nullptr;
     TFT_eSPI tftScr = TFT_eSPI();
     ScreenManager();
     ~ScreenManager();
     void init();
-    void dispDefaultImg(String imgPath);
+    void dispDefaultImg(const char* imgPath);
     void dispJpgImg(const char *imgPath);
     void disp1PStart();
     void disp2PStart();
     void dispInsCoin();
+    void dispNowPlaying();
+    void setNowPlayingPath(const char* nowPlayPath);
+    void setDefImgPath(const char* defImgPath);
 };

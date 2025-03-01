@@ -55,6 +55,7 @@ void FeedbackManager::init(Preferences* prefs, String devType) {
 #ifdef Lilygo
 void FeedbackManager::initScreen(ScreenManager* scrnMgr) {
   screenManager = scrnMgr;
+  scrnMgr->setDefImgPath(defaultImgPath.c_str());
 }
 #endif
 
@@ -500,6 +501,7 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
       const char* imgToShow = obj->getLaunchJPEG();
       if (imgToShow || strlen(imgToShow) > 0) {
         screenManager->dispJpgImg(imgToShow);
+        screenManager->setNowPlayingPath(imgToShow);
       }
     }
     #endif
@@ -522,7 +524,8 @@ void FeedbackManager::cardRemovedActions(ZaparooToken* obj) {
     }
     #ifdef Lilygo
     if(deviceType == "Lilygo" && resetOnRemove){
-      screenManager->dispDefaultImg(defaultImgPath);
+      screenManager->dispDefaultImg(defaultImgPath.c_str());
+      screenManager->setNowPlayingPath("");
     }
     #endif
 }
