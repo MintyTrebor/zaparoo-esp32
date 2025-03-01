@@ -8,24 +8,40 @@ InputManager::~InputManager() {
 }
 
 //Prefences has a 14 character limit for key
-void InputManager::init(ScreenManager* scrnMgr){
+void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr){
   screenManager = scrnMgr;
+  encoder = encdr;
+}
+
+void InputManager::doRotaryButton(){
+  //do button action here
+}
+void InputManager::doRotaryTurn(){
+  int currRotPos = encoder->getPosition();
+  if(lastRotationPos != currRotPos){
+    nextRotation();
+    lastRotationPos = currRotPos;
+    encoder->tick();
+  }else{
+    encoder->tick();
+  }
+  Serial.println(String(currRotPos));
 }
 
 void InputManager::nextRotation(){
-  if(lastRotationPos == 2){
-    lastRotationPos = 0;
+  if(lastScrnPos == 2){
+    lastScrnPos = 0;
   } 
   else {
-    lastRotationPos++;
+    lastScrnPos++;
   }
-  if(lastRotationPos == 0){
+  if(lastScrnPos == 0){
     screenManager->dispInsCoin();
   }
-  if(lastRotationPos == 1){
+  if(lastScrnPos == 1){
     screenManager->disp1PStart();
   }
-  if(lastRotationPos == 2){
+  if(lastScrnPos == 2){
     screenManager->disp2PStart();
   }
 }

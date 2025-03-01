@@ -5,10 +5,14 @@
 class InputManager {
   private:
     ScreenManager* screenManager;
-    int lastRotationPos = 2;
+    RotaryEncoder* encoder = nullptr;
+    int lastRotationPos = 0;
+    int lastScrnPos = 2;
   public:    
     InputManager();
-    ~InputManager();
-    void init(ScreenManager* scrnMgr);
+    ~InputManager();    
+    void init(ScreenManager* scrnMgr, RotaryEncoder* encdr);
     void nextRotation();
+    void doRotaryButton();
+    void doRotaryTurn();
 };
