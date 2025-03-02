@@ -603,6 +603,20 @@ void TFT_eSPI::begin(uint8_t tc)
  init(tc);
 }
 
+//custom sleep function
+void TFT_eSPI::sleep(bool value)
+{
+  if (value)
+  {
+    writecommand(0x10);   // Send command to put the display to sleep.
+    delay(150);           // Delay for shutdown time before another command can be sent.
+  }
+  else
+  {
+    init();               // This sends the wake up command and initialises the display
+    delay(50);            // Extra delay to stop a "white flash" while the TFT is initialising.
+  }
+}
 
 /***************************************************************************************
 ** Function name:           init (tc is tab colour for ST7735 displays only)
@@ -6136,6 +6150,7 @@ void TFT_eSPI::getSetup(setup_t &tft_settings)
   tft_settings.tch_spi_freq = 0;
 #endif
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

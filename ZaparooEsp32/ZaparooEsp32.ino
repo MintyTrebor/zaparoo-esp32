@@ -550,11 +550,11 @@ void setup() {
   scrnMan.init();
   scrnMan.dispDefaultImg("");
   feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan);
+  inpMan.init(&scrnMan, &encoder, &feedback);
   pinMode(ENCODER_KEY, INPUT);
-  attachInterrupt(ENCODER_KEY, doRotaryButton, FALLING);
-  attachInterrupt(ENCODER_INA, doRotaryTurn, CHANGE);
-  //attachInterrupt(ENCODER_INB, doRotaryTurn, CHANGE);
+  attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
+  attachInterrupt(ENCODER_INA, doRotTurn, CHANGE);
+  attachInterrupt(ENCODER_INB, doRotTurn, CHANGE);
   #endif
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
@@ -595,20 +595,11 @@ void setup() {
   // #endif
 }
 #ifdef Lilygo
-void doRotaryButton(void){
-  //do button action here
+void doRotButn(void){
+  inpMan.doRotaryButton();
 }
-void doRotaryTurn(void){
-  int currRotPos = encoder.getPosition();
-  if(lastRotPos != currRotPos){
-    inpMan.nextRotation();
-    lastRotPos = currRotPos;
-    encoder.tick();
-  }else{
-    encoder.tick();
-  }
-  String tmpPos = String(currRotPos);
-  Serial.println("EncPos: " + tmpPos);
+void doRotTurn(void){
+  inpMan.doRotaryTurn();
 }
 #endif
 
@@ -619,11 +610,4 @@ void loop() {
   }  
   delay(50);
 }
-// #ifdef Lilygo
-// void loop2(void* pvParameters){
-//   while(1){
-//     encoder.tick();
-//     delay(1);
-//   }
-// }
-// #endif
+

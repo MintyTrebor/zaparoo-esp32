@@ -7,16 +7,26 @@ ScreenManager::ScreenManager() {
 ScreenManager::~ScreenManager() {
 }
 
-//Prefences has a 14 character limit for key
 void ScreenManager::init(){
   tftScr.begin();
-  tftScr.begin();// Don't know why this has to be done twice but it works!!
-  delay(500);
-  //dispDefaultImg(defaultImgPath);
+  tftScr.setRotation(0);
+  tftScr.fillScreen(TFT_WHITE);
+  tftScr.init();
+  delay(500);  
 }
 
-void ScreenManager::dispDefaultImg(String imgPath){
-  const char* imgToShow = imgPath.c_str();
+void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
+  nowPlayingPath = nowPlayPath;
+  //Serial.println("NPP: " + String(nowPlayingPath));
+}
+
+void ScreenManager::setDefImgPath(const char *defImgPath){
+  defaultImgPath = defImgPath;
+  //Serial.println("DIP: " + String(defaultImgPath));
+}
+
+void ScreenManager::dispDefaultImg(const char *imgPath){
+  const char* imgToShow = imgPath;
   tftScr.setRotation(0);
   tftScr.fillScreen(TFT_WHITE);
   if (imgToShow == nullptr || strlen(imgToShow) == 0) {
@@ -52,14 +62,27 @@ void ScreenManager::dispInsCoin(){
   }
 }
 
+void ScreenManager::dispNowPlaying(){
+  Serial.println("CurrNPP: " + String(nowPlayingPath));
+  if(nowPlayingPath == nullptr || strlen(nowPlayingPath) == 0){
+    dispDefaultImg(defaultImgPath);
+  } else {
+    //Display the current game image here
+    //dispJpgImg(nowPlayingPath);
+    //This isn't working when I call the dispJpgImg function it crashes the Lilygo (but I know the dispJPGImg works)
+    //I think it is because the SD object is initiated in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
+  }
+}
+
 void ScreenManager::dispJpgImg(const char *imgPath){
-  //const char* imgToShow = imgPath.c_str();
+  Serial.println("HERE2");
   if (imgPath == nullptr || strlen(imgPath) == 0) {
     return;
   }
   if (SD.exists(imgPath)) {
     tftScr.fillScreen(TFT_WHITE);
     drawSdJpeg(imgPath, 0, 0);
+    delay(1000);
   }
 }
 

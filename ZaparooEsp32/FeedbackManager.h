@@ -6,6 +6,7 @@
 #include "ZaparooToken.h"
 #include "ZaparooEsp32.hpp"
 #include <FastLED.h>
+#include "DeviceManager.h"
 
 #ifdef Lilygo
 #include "ScreenManager.h"

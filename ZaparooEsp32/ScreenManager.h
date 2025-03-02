@@ -1,24 +1,28 @@
 #pragma once
-#include "libraries/TFT_eSPI/TFT_eSPI.h"
-#include "defBootImg.h"
+#include <TFT_eSPI.h>
+#include "images/defBootImg.h"
 #include <JPEGDecoder.h>
-#include "onePlayerStartImg.h"
-#include "twoPlayerStartImg.h"
-#include "insertCoinImg.h"
+#include "images/onePlayerStartImg.h"
+#include "images/twoPlayerStartImg.h"
+#include "images/insertCoinImg.h"
 
 class ScreenManager {
   private:
     void jpegRender(int xpos, int ypos);
     void drawSdJpeg(const char *filename, int xpos, int ypos);
   public:
-    String defaultImgPath = "";
+    const char *defaultImgPath = nullptr;
+    const char *nowPlayingPath = nullptr;
     TFT_eSPI tftScr = TFT_eSPI();
     ScreenManager();
     ~ScreenManager();
     void init();
-    void dispDefaultImg(String imgPath);
+    void dispDefaultImg(const char* imgPath);
     void dispJpgImg(const char *imgPath);
     void disp1PStart();
     void disp2PStart();
     void dispInsCoin();
+    void dispNowPlaying();
+    void setNowPlayingPath(const char* nowPlayPath);
+    void setDefImgPath(const char* defImgPath);
 };
