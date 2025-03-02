@@ -1,10 +1,10 @@
 #pragma once
 #include <TFT_eSPI.h>
-#include "defBootImg.h"
+#include "images/defBootImg.h"
 #include <JPEGDecoder.h>
-#include "onePlayerStartImg.h"
-#include "twoPlayerStartImg.h"
-#include "insertCoinImg.h"
+#include "images/onePlayerStartImg.h"
+#include "images/twoPlayerStartImg.h"
+#include "images/insertCoinImg.h"
 
 class ScreenManager {
   private:

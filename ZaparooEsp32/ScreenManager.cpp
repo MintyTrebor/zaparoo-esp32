@@ -7,7 +7,6 @@ ScreenManager::ScreenManager() {
 ScreenManager::~ScreenManager() {
 }
 
-//Prefences has a 14 character limit for key
 void ScreenManager::init(){
   tftScr.begin();
   tftScr.setRotation(0);

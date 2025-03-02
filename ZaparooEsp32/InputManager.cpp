@@ -7,7 +7,6 @@ InputManager::InputManager() {
 InputManager::~InputManager() {
 }
 
-//Prefences has a 14 character limit for key
 void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan){
   screenManager = scrnMgr;
   encoder = encdr;
