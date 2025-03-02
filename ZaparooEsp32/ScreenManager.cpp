@@ -67,6 +67,7 @@ void ScreenManager::dispNowPlaying(){
     dispDefaultImg(defaultImgPath);
   } else {
     //Display the current game image here
+    //dispJpgImg(nowPlayingPath);
     //This isn't working when I call the dispJpgImg function it crashes the Lilygo (but I know the dispJPGImg works)
     //I think it is becasue the SD object is initaited in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
   }
