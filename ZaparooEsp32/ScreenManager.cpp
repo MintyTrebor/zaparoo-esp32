@@ -10,7 +10,9 @@ ScreenManager::~ScreenManager() {
 //Prefences has a 14 character limit for key
 void ScreenManager::init(){
   tftScr.begin();
-  tftScr.begin();// Don't know why this has to be done twice but it works!!
+  tftScr.setRotation(0);
+  tftScr.fillScreen(TFT_WHITE);
+  tftScr.init();
   delay(500);  
 }
 
@@ -69,7 +71,7 @@ void ScreenManager::dispNowPlaying(){
     //Display the current game image here
     //dispJpgImg(nowPlayingPath);
     //This isn't working when I call the dispJpgImg function it crashes the Lilygo (but I know the dispJPGImg works)
-    //I think it is becasue the SD object is initaited in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
+    //I think it is because the SD object is initiated in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
   }
 }
 

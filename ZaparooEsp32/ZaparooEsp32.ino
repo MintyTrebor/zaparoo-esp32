@@ -550,7 +550,7 @@ void setup() {
   scrnMan.init();
   scrnMan.dispDefaultImg("");
   feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan, &encoder);
+  inpMan.init(&scrnMan, &encoder, &feedback);
   pinMode(ENCODER_KEY, INPUT);
   attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
   attachInterrupt(ENCODER_INA, doRotTurn, CHANGE);
