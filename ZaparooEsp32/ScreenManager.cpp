@@ -83,6 +83,7 @@ void ScreenManager::dispJpgImg(const char *imgPath){
   if (SD.exists(imgPath)) {
     tftScr.fillScreen(TFT_WHITE);
     drawSdJpeg(imgPath, 0, 0);
+    delay(1000);
   } else {
     return;
   }

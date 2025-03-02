@@ -1,5 +1,5 @@
 #pragma once
-#include "libraries/TFT_eSPI/TFT_eSPI.h"
+#include <TFT_eSPI.h>
 #include "defBootImg.h"
 #include <JPEGDecoder.h>
 #include "onePlayerStartImg.h"
