@@ -12,7 +12,7 @@ void ScreenManager::init(){
   tftScr.setRotation(0);
   tftScr.fillScreen(TFT_WHITE);
   tftScr.init();
-  delay(500);  
+  //delay(500);  
 }
 
 void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
@@ -68,21 +68,17 @@ void ScreenManager::dispNowPlaying(){
     dispDefaultImg(defaultImgPath);
   } else {
     //Display the current game image here
-    //dispJpgImg(nowPlayingPath);
-    //This isn't working when I call the dispJpgImg function it crashes the Lilygo (but I know the dispJPGImg works)
-    //I think it is because the SD object is initiated in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
+    dispJpgImg(nowPlayingPath);
   }
 }
 
 void ScreenManager::dispJpgImg(const char *imgPath){
-  Serial.println("HERE2");
   if (imgPath == nullptr || strlen(imgPath) == 0) {
     return;
   }
   if (SD.exists(imgPath)) {
     tftScr.fillScreen(TFT_WHITE);
     drawSdJpeg(imgPath, 0, 0);
-    delay(1000);
   }
 }
 
