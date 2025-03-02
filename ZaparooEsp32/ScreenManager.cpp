@@ -14,15 +14,17 @@ void ScreenManager::init(){
   delay(500);  
 }
 
-void ScreenManager::setNowPlayingPath(const char* nowPlayPath){
+void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
   nowPlayingPath = nowPlayPath;
+  //Serial.println("NPP: " + String(nowPlayingPath));
 }
 
-void ScreenManager::setDefImgPath(const char*  defImgPath){
+void ScreenManager::setDefImgPath(const char *defImgPath){
   defaultImgPath = defImgPath;
+  //Serial.println("DIP: " + String(defaultImgPath));
 }
 
-void ScreenManager::dispDefaultImg(const char* imgPath){
+void ScreenManager::dispDefaultImg(const char *imgPath){
   const char* imgToShow = imgPath;
   tftScr.setRotation(0);
   tftScr.fillScreen(TFT_WHITE);
@@ -60,19 +62,18 @@ void ScreenManager::dispInsCoin(){
 }
 
 void ScreenManager::dispNowPlaying(){
-  if (defaultImgPath || strlen(defaultImgPath) > 0){
-    if (SD.exists(defaultImgPath)) {
-      drawSdJpeg(defaultImgPath, 0, 0);
-    } else {
-      dispDefaultImg(defaultImgPath);
-    }  
-  }else{
+  Serial.println("CurrNPP: " + String(nowPlayingPath));
+  if(nowPlayingPath == nullptr || strlen(nowPlayingPath) == 0){
     dispDefaultImg(defaultImgPath);
+  } else {
+    //Display the current game image here
+    //This isn't working when I call the dispJpgImg function it crashes the Lilygo (but I know the dispJPGImg works)
+    //I think it is becasue the SD object is initaited in the feedbackManager class & I am calling from the InputManager class therefore its not finding it....
   }
 }
 
 void ScreenManager::dispJpgImg(const char *imgPath){
-  //const char* imgToShow = imgPath.c_str();
+  Serial.println("HERE2");
   if (imgPath == nullptr || strlen(imgPath) == 0) {
     return;
   }

@@ -11,8 +11,8 @@ class ScreenManager {
     void jpegRender(int xpos, int ypos);
     void drawSdJpeg(const char *filename, int xpos, int ypos);
   public:
-    const char* defaultImgPath = nullptr;
-    const char* nowPlayingPath = nullptr;
+    const char *defaultImgPath = nullptr;
+    const char *nowPlayingPath = nullptr;
     TFT_eSPI tftScr = TFT_eSPI();
     ScreenManager();
     ~ScreenManager();
