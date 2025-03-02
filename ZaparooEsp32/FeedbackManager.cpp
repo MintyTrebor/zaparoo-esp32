@@ -42,7 +42,7 @@ void FeedbackManager::init(Preferences* prefs, String devType) {
     i2sDoutPin = preferences->getInt("i2sDoutPin", BOARD_VOICE_DIN);
     setupPins();
     delay(500);
-    createUidMappingFile();
+    //createUidMappingFile();
     if(deviceType == "Lilygo"){
       //setting defaults for this device as they should never be changed by the user
       audioEnabled = true;

@@ -18,7 +18,6 @@ private:
     ScreenManager* screenManager;
     #endif
     void setupPins();
-    void createUidMappingFile();
     void ledRingRed();
     void ledRingBlue();
     void ledRingGreen();
@@ -73,6 +72,7 @@ public:
     void cardInsertedActions(ZaparooToken* obj);
     void cardRemovedActions(ZaparooToken* obj);
     void lilygoWifiLed();
+    void createUidMappingFile();
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
     #endif  

@@ -581,6 +581,7 @@ void setup() {
   }
   fileManager->setServer(&server);
   fileManager->begin();
+  feedback.createUidMappingFile();
   // #ifdef Lilygo
   // xTaskCreatePinnedToCore (
   //   loop2,     // Function to implement the task

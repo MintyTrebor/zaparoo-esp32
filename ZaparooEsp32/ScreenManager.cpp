@@ -28,9 +28,7 @@ void ScreenManager::dispDefaultImg(String imgPath){
   }
   if (SD.exists(imgToShow)) {
     drawSdJpeg(imgToShow, 0, 0);
-  } else {
-    return;
-  }  
+  } 
 }
 
 void ScreenManager::disp1PStart(){
@@ -39,12 +37,14 @@ void ScreenManager::disp1PStart(){
     jpegRender(0, 0);
   }
 }
+
 void ScreenManager::disp2PStart(){
   bool decoded = JpegDec.decodeArray(PlayerTwoStart_jpg, 24097);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
+
 void ScreenManager::dispInsCoin(){
   bool decoded = JpegDec.decodeArray(InsertCoin_jpg, 9028);
   if(decoded) {
@@ -60,8 +60,6 @@ void ScreenManager::dispJpgImg(const char *imgPath){
   if (SD.exists(imgPath)) {
     tftScr.fillScreen(TFT_WHITE);
     drawSdJpeg(imgPath, 0, 0);
-  } else {
-    return;
   }
 }
 
