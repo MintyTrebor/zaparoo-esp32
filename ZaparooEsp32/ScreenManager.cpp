@@ -63,7 +63,7 @@ void ScreenManager::dispInsCoin(){
 }
 
 void ScreenManager::dispNowPlaying(){
-  Serial.println("CurrNPP: " + String(nowPlayingPath));
+  //Serial.println("CurrNPP: " + String(nowPlayingPath));
   if(nowPlayingPath == nullptr || strlen(nowPlayingPath) == 0){
     dispDefaultImg(defaultImgPath);
   } else {

@@ -553,8 +553,9 @@ void setup() {
   inpMan.init(&scrnMan, &encoder, &feedback);
   pinMode(ENCODER_KEY, INPUT);
   attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
-  attachInterrupt(ENCODER_INA, doRotTurn, CHANGE);
-  attachInterrupt(ENCODER_INB, doRotTurn, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
+  xTaskCreatePinnedToCore(loop2, "loop2", 4096, NULL, 2, NULL,0);
   #endif
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
@@ -582,24 +583,14 @@ void setup() {
   fileManager->setServer(&server);
   fileManager->begin();
   feedback.createUidMappingFile();
-  // #ifdef Lilygo
-  // xTaskCreatePinnedToCore (
-  //   loop2,     // Function to implement the task
-  //   "loop2",   // Name of the task
-  //   1000,      // Stack size in bytes
-  //   NULL,      // Task input parameter
-  //   0,         // Priority of the task
-  //   NULL,      // Task handle.
-  //   0          // Core where the task should run
-  // );
-  // #endif
 }
 #ifdef Lilygo
 void doRotButn(void){
   inpMan.doRotaryButton();
 }
 void doRotTurn(void){
-  inpMan.doRotaryTurn();
+  //inpMan.doRotaryTurn();
+  encoder.tick();
 }
 #endif
 
@@ -610,4 +601,16 @@ void loop() {
   }  
   delay(50);
 }
-
+#ifdef Lilygo
+void loop2(void *pvParameters) {
+  while(1){
+    int pos = 0;
+    encoder.tick();
+    int newPos = encoder.getPosition();
+    if (pos != newPos) {
+      inpMan.doRotaryTurn();
+    }
+    delay(50);
+  }
+}
+#endif
