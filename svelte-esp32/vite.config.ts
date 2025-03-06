@@ -31,6 +31,10 @@ export default defineConfig({
         target: getBackendHttp(), // Backend server URL
         changeOrigin: true, // Adjust the `Host` header to match the target,
       },
+      '/update': {
+        target: getBackendHttp(), // Backend server URL
+        changeOrigin: true, // Adjust the `Host` header to match the target,
+      },
       '/get-folder-contents': {
         target: getBackendHttp(), // Backend server URL
         changeOrigin: true, // Adjust the `Host` header to match the target,

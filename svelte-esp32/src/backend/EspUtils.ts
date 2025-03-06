@@ -148,5 +148,29 @@ export class EspUtils{
         this.websocket.send(JSON.stringify(payload));
         LogUtils.notify("Requested ESP Reset");
     }
+
+    static async uploadFirmware(file: File, onProgress: (progress: number) => void) {
+        const formData = new FormData();
+        formData.append("update", file);
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/update", true);
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = Math.round((event.loaded / event.total) * 100);
+                onProgress(percentComplete);
+            }
+        };
+        return new Promise<void>((resolve, reject) => {
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve();
+                } else {
+                    reject(new Error(`Upload failed with status: ${xhr.status}`));
+                }
+            };
+            xhr.onerror = () => reject(new Error("Network error"));
+            xhr.send(formData);
+        });
+    }
     
 }

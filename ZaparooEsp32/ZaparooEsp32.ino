@@ -15,6 +15,7 @@
 #include "ZaparooEsp32.hpp"
 #include "ZaparooScanner.cpp"
 #include "FeedbackManager.h"
+#include "Update.h"
 
 
 
@@ -76,6 +77,9 @@ String lastSerialCommand = "";
 //Prototypes
 void notifyClients(const String& txtMsgToSend, const String& msgType);
 void handleWebSocketMessage(void* arg, uint8_t* data, size_t len);
+void doRotTurn(void);
+void doRotButn(void);
+void rotary(void *pvParameters);
 
 
 void setPref_Bool(const String& key, bool valBool) {
@@ -92,6 +96,12 @@ void setPref_Str(const String& key, const String& valStr) {
 
 void setPref_Float(const String& key, float valFloat) {
   preferences.putFloat(key.c_str(), valFloat);
+}
+
+void restartESP(){
+  Serial.println("Restarting ESP...");
+  delay(100);
+  ESP.restart();
 }
 
 void notifyClients(const String& txtMsgToSend, const String& msgType) {
@@ -578,6 +588,37 @@ void setup() {
     AsyncWebServerResponse* response = request->beginResponse_P(200, "text/html", index_html, index_html_len);
     response->addHeader("Content-Encoding", "gzip");
     request->send(response);
+  });
+  server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request) {
+    int statusCode = Update.hasError() ? 500 : 200;
+    request->send(statusCode);
+    if (statusCode == 200) {
+        Serial.println("Update successful. Restarting in 2s...");
+        delay(500);
+        xTaskCreate([](void *param) {
+            vTaskDelay(1000 / portTICK_PERIOD_MS);  // 2s delay
+            restartESP();
+            vTaskDelete(NULL);
+        }, "restartTask", 2048, NULL, 1, NULL);
+    }
+  }, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    if (!index) {
+        Serial.printf("Updating: %s\n", filename.c_str());
+        if (!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+            Update.printError(Serial);
+            return;
+        }
+    }
+    if (Update.write(data, len) != len) {
+        Update.printError(Serial);
+    }
+    if (final) {
+        if (!Update.end(true)) {
+            Update.printError(Serial);
+        } else {
+            Serial.println("Update Success!");
+        }
+    }
   });
 
   if (feedback.sdCardEnabled) {
