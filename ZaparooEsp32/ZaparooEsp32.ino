@@ -555,6 +555,7 @@ void setup() {
 #ifdef Lilygo
   scrnMan.init();
   scrnMan.dispDefaultImg("");
+  delay(1000);
   feedback.initScreen(&scrnMan);
   inpMan.init(&scrnMan, &encoder, &feedback);
   pinMode(ENCODER_KEY, INPUT);

@@ -144,6 +144,22 @@
       </div>
     </div>
   </div>
+  <div class="col-12">
+    <div class="input-group col-6">
+      <div class="input-group-text col-6">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="enableAudio" bind:checked={config.audioEnabled}/>
+          <label class="form-check-label" for="enableAudio">Audio Module</label>
+        </div>
+      </div>
+      <div class="input-group-text col-6">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="enableSDCard" bind:checked={config.sdCardEnabled}/>
+          <label class="form-check-label" for="enableSDCard">SD Card Module</label>
+        </div>
+      </div>
+    </div>
+  </div>
   <button type="submit" class="btn btn-primary mt-3">Save</button>
 </form>
 {/if}

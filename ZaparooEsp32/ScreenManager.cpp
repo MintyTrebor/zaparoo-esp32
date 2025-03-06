@@ -42,14 +42,14 @@ void ScreenManager::dispDefaultImg(const char *imgPath){
 }
 
 void ScreenManager::dispAPConn(){
-  bool decoded = JpegDec.decodeArray(ZapConnToAP_jpg, 21442);
+  bool decoded = JpegDec.decodeArray(ZapConnToAP_jpg, 23084);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
 void ScreenManager::dispWiFiConn(){
-  bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, 17502);
+  bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, 18631);
   if(decoded) {
     jpegRender(0, 0);
   }
