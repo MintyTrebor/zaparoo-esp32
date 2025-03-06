@@ -15,6 +15,7 @@
 class FeedbackManager {
 private:
     Preferences* preferences;
+    DeviceManager* devMangr;
     #ifdef Lilygo
     ScreenManager* screenManager;
     #endif
@@ -55,7 +56,7 @@ public:
 
     FeedbackManager();
     ~FeedbackManager();
-    void init(Preferences* prefs, String devType);
+    void init(Preferences* prefs, String devType, DeviceManager* devMan);
     void update(JsonDocument& doc);
     void set(JsonDocument& doc);
     void motorOn(int predelay = 0);

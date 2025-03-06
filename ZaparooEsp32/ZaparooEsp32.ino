@@ -28,13 +28,16 @@ String deviceType = "PN532";
 #include "scanners/ZaparooPN532Scanner.cpp"
 #include "ScreenManager.h"
 #include "InputManager.h"
+#include "DeviceManager.h"
 #include <RotaryEncoder.h>
 PN532_I2C pn532_i2c(Wire);
 String deviceType = "Lilygo";
 ScreenManager scrnMan;
 InputManager inpMan;
+DeviceManager devMan;
 RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
 int lastRotPos = 0;
+bool buttonTrigger;
 #endif
 
 #ifdef RC522
@@ -545,8 +548,8 @@ void setup() {
     tokenScanner->reset();
   }
   preferences.begin("qrplay", false);
-  feedback.init(&preferences, deviceType);
-  #ifdef Lilygo
+  feedback.init(&preferences, deviceType, &devMan);
+#ifdef Lilygo
   scrnMan.init();
   scrnMan.dispDefaultImg("");
   feedback.initScreen(&scrnMan);
@@ -555,8 +558,8 @@ void setup() {
   attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
-  xTaskCreatePinnedToCore(loop2, "loop2", 4096, NULL, 2, NULL,0);
-  #endif
+  xTaskCreatePinnedToCore(rotary, "rotary", 4096, NULL, 2, NULL,0);
+#endif
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
 
@@ -586,10 +589,9 @@ void setup() {
 }
 #ifdef Lilygo
 void doRotButn(void){
-  inpMan.doRotaryButton();
+  buttonTrigger = true;
 }
 void doRotTurn(void){
-  //inpMan.doRotaryTurn();
   encoder.tick();
 }
 #endif
@@ -602,13 +604,17 @@ void loop() {
   delay(50);
 }
 #ifdef Lilygo
-void loop2(void *pvParameters) {
+void rotary(void *pvParameters) {
   while(1){
     int pos = 0;
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
       inpMan.doRotaryTurn();
+    }
+    if(buttonTrigger){
+      buttonTrigger = false;
+      inpMan.doRotaryButton();
     }
     delay(50);
   }

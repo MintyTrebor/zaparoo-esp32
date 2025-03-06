@@ -9,9 +9,6 @@
   //#define BOARD_SD_CS 5
   //#define RST_PIN 4
   //Default Audio Pins
-  //#define BOARD_VOICE_BCLK 27
-  //#define BOARD_VOICE_LRCLK 26
-  //#define BOARD_VOICE_DIN 25
   //#define NUM_LEDS 3
   //-----------------------------------------------------------------------
   
@@ -24,9 +21,6 @@
   // //This is essential for stability and recovery after an esp32 soft reset.
   // #define PN532_RST_PIN 13
   // //Default Audio Pins
-  // #define BOARD_VOICE_BCLK 27
-  // #define BOARD_VOICE_LRCLK 26
-  // #define BOARD_VOICE_DIN 25
   // #define NUM_LEDS 3
   // #define LED_DATA_PIN 0
   //------------------------------------------------------------------------

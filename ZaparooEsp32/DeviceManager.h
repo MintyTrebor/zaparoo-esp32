@@ -1,12 +1,9 @@
 #pragma once
 #include <Arduino.h>
+#include <ArduinoJson.h>
 
 class DeviceManager {
   private:
-    
-  public:    
-    DeviceManager();
-    ~DeviceManager();
     //safe defaults
     int audioGain = 21;
     bool wifiLedEnabled = true;
@@ -32,6 +29,10 @@ class DeviceManager {
     int i2sBclkPin = BOARD_VOICE_BCLK;
     int i2sLrcPin = BOARD_VOICE_LRCLK;
     int i2sDoutPin = BOARD_VOICE_DIN;   
+  public:    
+    DeviceManager();
+    ~DeviceManager();
     void setDeviceDefaults(String devType);
     void setupPins(String devType);
+    void getDeviceDefaults(JsonDocument& doc);
 };

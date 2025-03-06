@@ -10,45 +10,49 @@ FeedbackManager::~FeedbackManager() {
 }
 
 //Prefences has a 14 character limit for key
-void FeedbackManager::init(Preferences* prefs, String devType) {
+void FeedbackManager::init(Preferences* prefs, String devType, DeviceManager* devMan) {
     preferences = prefs;
-    audioGain = preferences->getFloat("audioGain", 21.0);
-    wifiLedEnabled = preferences->getBool("wifiLed", false);
-    motorEnabled = preferences->getBool("motor", false);
-    launchLedEnabled = preferences->getBool("launchLed", false);
-    audioEnabled = preferences->getBool("audio", false);
-    pwrLedEnabled = preferences->getBool("pwrLed", false);
-    resetOnRemove = preferences->getBool("resetOnRemove", true);
-    sdCardEnabled = preferences->getBool("sdCard", false);
-    buzzOnDetect = preferences->getBool("buzzOnDetect", true);
-    buzzOnLaunch = preferences->getBool("buzzOnLaunch", true);
-    buzzOnRemove = preferences->getBool("buzzOnRemove", true);
-    buzzOnError = preferences->getBool("buzzOnError", true);
-    defaultInsertAudio = preferences->getString("insertAudio", "");
-    defaultLaunchAudio = preferences->getString("launchAudio", "");
-    defaultRemoveAudio = preferences->getString("removeAudio", "");
-    defaultErrorAudio = preferences->getString("errorAudio", "");
-    defaultImgPath = preferences->getString("defImgPath", "");
+    JsonDocument defaultData;
+    devMangr = devMan;
+    devMangr->setDeviceDefaults(devType);
+    devMangr->getDeviceDefaults(defaultData);
+
+    audioGain = preferences->getFloat("audioGain", defaultData["data"]["audioGain"].as<float>());
+    wifiLedEnabled = preferences->getBool("wifiLed", defaultData["data"]["wifiLedEnabled"].as<bool>());
+    motorEnabled = preferences->getBool("motor", defaultData["data"]["motorEnabled"].as<bool>());
+    launchLedEnabled = preferences->getBool("launchLed", defaultData["data"]["launchLedEnabled"].as<bool>());
+    audioEnabled = preferences->getBool("audio", defaultData["data"]["audioEnabled"].as<bool>());
+    pwrLedEnabled = preferences->getBool("pwrLed", defaultData["data"]["pwrLedEnabled"].as<bool>());
+    resetOnRemove = preferences->getBool("resetOnRemove", defaultData["data"]["resetOnRemove"].as<bool>());
+    sdCardEnabled = preferences->getBool("sdCard", defaultData["data"]["sdCardEnabled"].as<bool>());
+    buzzOnDetect = preferences->getBool("buzzOnDetect", defaultData["data"]["buzzOnDetect"].as<bool>());
+    buzzOnLaunch = preferences->getBool("buzzOnLaunch", defaultData["data"]["buzzOnLaunch"].as<bool>());
+    buzzOnRemove = preferences->getBool("buzzOnRemove", defaultData["data"]["buzzOnRemove"].as<bool>());
+    buzzOnError = preferences->getBool("buzzOnError", defaultData["data"]["buzzOnError"].as<bool>());
+    defaultInsertAudio = preferences->getString("insertAudio", defaultData["data"]["defaultInsertAudio"].as<String>());
+    defaultLaunchAudio = preferences->getString("launchAudio", defaultData["data"]["defaultLaunchAudio"].as<String>());
+    defaultRemoveAudio = preferences->getString("removeAudio", defaultData["data"]["defaultRemoveAudio"].as<String>());
+    defaultErrorAudio = preferences->getString("errorAudio", defaultData["data"]["defaultErrorAudio"].as<String>());
+    defaultImgPath = preferences->getString("defImgPath", defaultData["data"]["defaultImgPath"].as<String>());
     deviceType = devType;
     
-    motorPin = preferences->getInt("motorPin", 32);
-    launchLedPin = preferences->getInt("launchLedPin", 33);
-    wifiLedPin = preferences->getInt("wifiLedPin", 2);
-    pwrLedPin = preferences->getInt("pwrLedPin", 15);
+    motorPin = preferences->getInt("motorPin", defaultData["data"]["motorPin"].as<int>());
+    launchLedPin = preferences->getInt("launchLedPin", defaultData["data"]["launchLedPin"].as<int>());
+    wifiLedPin = preferences->getInt("wifiLedPin", defaultData["data"]["wifiLedPin"].as<int>());
+    pwrLedPin = preferences->getInt("pwrLedPin", defaultData["data"]["pwrLedPin"].as<int>());
 
     // Read the I2S pins from preferences but don't save them in member variables
-    i2sBclkPin = preferences->getInt("i2sBclkPin", BOARD_VOICE_BCLK);
-    i2sLrcPin = preferences->getInt("i2sLrcPin", BOARD_VOICE_LRCLK);
-    i2sDoutPin = preferences->getInt("i2sDoutPin", BOARD_VOICE_DIN);
+    i2sBclkPin = preferences->getInt("i2sBclkPin", defaultData["data"]["i2sBclkPin"].as<int>());
+    i2sLrcPin = preferences->getInt("i2sLrcPin", defaultData["data"]["i2sLrcPin"].as<int>());
+    i2sDoutPin = preferences->getInt("i2sDoutPin", defaultData["data"]["i2sDoutPin"].as<int>());
+
     setupPins();
     delay(500);
-    //createUidMappingFile();
     if(deviceType == "Lilygo"){
-      //setting defaults for this device as they should never be changed by the user
-      audioEnabled = true;
-      i2sBclkPin = BOARD_VOICE_BCLK;
-      i2sLrcPin = BOARD_VOICE_LRCLK;
-      i2sDoutPin = BOARD_VOICE_DIN;
+      //Overriding any user Audio Pin settings for this device as they should never be changed by the user
+      i2sBclkPin = defaultData["data"]["i2sBclkPin"].as<int>();
+      i2sLrcPin = defaultData["data"]["i2sLrcPin"].as<int>();
+      i2sDoutPin = defaultData["data"]["i2sDoutPin"].as<int>();
     }
 }
 #ifdef Lilygo
@@ -472,7 +476,7 @@ int FeedbackManager::playAudio(const char* audioPath) {
         return 0;
     }
     Audio audio;  
-    audio.setPinout(BOARD_VOICE_BCLK, BOARD_VOICE_LRCLK, BOARD_VOICE_DIN);
+    audio.setPinout(i2sBclkPin, i2sLrcPin, i2sDoutPin);
     audio.setVolume(audioGain);
     if (sdCardEnabled) {
         audio.connecttoFS(SD, audioPath);

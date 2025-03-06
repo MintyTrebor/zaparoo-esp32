@@ -14,7 +14,15 @@ void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackMa
 }
 
 void InputManager::doRotaryButton(){
-  //do button action here
+  if(lastScrnPos == 0){
+    Serial.println("Do Insert Coin Action");
+  }
+  if(lastScrnPos == 1){
+    Serial.println("Do 1Player Start Action");
+  }
+  if(lastScrnPos == 2){
+    Serial.println("Do 2Player Start Action");
+  }
 }
 void InputManager::doRotaryTurn(){
   int currRotPos = encoder->getPosition();
