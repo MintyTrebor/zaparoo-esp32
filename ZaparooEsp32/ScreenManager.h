@@ -2,9 +2,8 @@
 #include <TFT_eSPI.h>
 #include "images/defBootImg.h"
 #include <JPEGDecoder.h>
-#include "images/onePlayerStartImg.h"
-#include "images/twoPlayerStartImg.h"
-#include "images/insertCoinImg.h"
+#include "images/connectingAP.h"
+#include "images/connectingWiFi.h"
 
 class ScreenManager {
   private:
@@ -19,9 +18,8 @@ class ScreenManager {
     void init();
     void dispDefaultImg(const char* imgPath);
     void dispJpgImg(const char *imgPath);
-    void disp1PStart();
-    void disp2PStart();
-    void dispInsCoin();
+    void dispAPConn();
+    void dispWiFiConn();
     void dispNowPlaying();
     void setNowPlayingPath(const char* nowPlayPath);
     void setDefImgPath(const char* defImgPath);

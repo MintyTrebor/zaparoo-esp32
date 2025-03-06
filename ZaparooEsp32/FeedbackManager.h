@@ -75,6 +75,9 @@ public:
     void cardRemovedActions(ZaparooToken* obj);
     void lilygoWifiLed();
     void createUidMappingFile();
+    void doWiFiAP(String devType);
+    void doWiFiConn(String devType);
+    void doDefaultScreen(String devType);
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
     #endif  

@@ -44,15 +44,15 @@ void InputManager::nextRotation(){
     lastScrnPos++;
   }
   if(lastScrnPos == 0){
-    screenManager->dispInsCoin();
+    
   }
   if(lastScrnPos == 1){
-    screenManager->disp1PStart();
+    
   }
   if(lastScrnPos == 2){
-    screenManager->disp2PStart();
+    
   }
   if(lastScrnPos == 3){
-    screenManager->dispNowPlaying();
+    
   }
 }

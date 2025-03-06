@@ -58,7 +58,7 @@ void FeedbackManager::init(Preferences* prefs, String devType, DeviceManager* de
 #ifdef Lilygo
 void FeedbackManager::initScreen(ScreenManager* scrnMgr) {
   screenManager = scrnMgr;
-  scrnMgr->setDefImgPath(defaultImgPath.c_str());
+  screenManager->setDefImgPath(defaultImgPath.c_str());
 }
 #endif
 
@@ -86,6 +86,29 @@ void FeedbackManager::createUidMappingFile(){
   }
 }
 
+void FeedbackManager::doWiFiAP(String devType){
+  if(devType == "Lilygo"){
+#ifdef Lilygo
+    screenManager->dispAPConn();
+#endif
+  }
+}
+
+void FeedbackManager::doWiFiConn(String devType){
+  if(devType == "Lilygo"){
+#ifdef Lilygo
+    screenManager->dispWiFiConn();
+#endif
+  }
+}
+
+void FeedbackManager::doDefaultScreen(String devType){
+  if(devType == "Lilygo"){
+#ifdef Lilygo
+    screenManager->dispDefaultImg(defaultImgPath.c_str());
+#endif
+  }
+}
 
 void FeedbackManager::setupPins() {
   if (motorEnabled) {
@@ -378,6 +401,12 @@ void FeedbackManager::expressError(int code) {
             playAudio(defaultErrorAudio.c_str());
         }
         launchLedOff(0, 400);
+#ifdef Lilygo
+    if(deviceType == "Lilygo"){
+      screenManager->dispDefaultImg(defaultImgPath.c_str());
+      screenManager->setNowPlayingPath("");
+    }
+#endif
     }
 }
 
@@ -499,7 +528,7 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
     if (pathToPlay && strlen(pathToPlay) > 0) {
         playAudio(pathToPlay);
     }
-    #ifdef Lilygo
+#ifdef Lilygo
     if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
       const char* imgToShow = obj->getLaunchJPEG();
       if (imgToShow || strlen(imgToShow) > 0) {
@@ -507,7 +536,7 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
         screenManager->setNowPlayingPath(imgToShow);
       }
     }
-    #endif
+#endif
     if (buzzOnDetect) {
         motorOn(0);
         motorOff(100);
@@ -525,10 +554,10 @@ void FeedbackManager::cardRemovedActions(ZaparooToken* obj) {
     if (buzzOnRemove) {
         motorOff();
     }
-    #ifdef Lilygo
+#ifdef Lilygo
     if(deviceType == "Lilygo" && resetOnRemove){
       screenManager->dispDefaultImg(defaultImgPath.c_str());
       screenManager->setNowPlayingPath("");
     }
-    #endif
+#endif
 }

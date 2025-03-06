@@ -150,6 +150,7 @@ void startApMode() {
   WiFi.softAP("zapesp32", "zapesp32");
   Serial.println("Starting AP Mode:");
   Serial.println(WiFi.softAPIP());
+  feedback.doWiFiAP(deviceType);
   server.begin();
   initWebSocket();
   MDNS.begin("zapesp");
@@ -170,6 +171,7 @@ void connectWifi() {
     startApMode();
     return;
   }
+  feedback.doWiFiConn(deviceType);
   //Code to connect esp32 to strongest AP in mesh network env
   int n = WiFi.scanNetworks();
   if (n != 0) {
@@ -220,6 +222,7 @@ void connectWifi() {
   feedback.motorOn(100);
   feedback.motorOff(250);
   feedback.wifiLedOn();
+  feedback.doDefaultScreen(deviceType);
 }
 
 void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRemoveFile, String& launchJPEGFile) {

@@ -41,22 +41,15 @@ void ScreenManager::dispDefaultImg(const char *imgPath){
   } 
 }
 
-void ScreenManager::disp1PStart(){
-  bool decoded = JpegDec.decodeArray(PlayerOneStart_jpg, 24024);
+void ScreenManager::dispAPConn(){
+  bool decoded = JpegDec.decodeArray(ZapConnToAP_jpg, 21442);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
-void ScreenManager::disp2PStart(){
-  bool decoded = JpegDec.decodeArray(PlayerTwoStart_jpg, 24097);
-  if(decoded) {
-    jpegRender(0, 0);
-  }
-}
-
-void ScreenManager::dispInsCoin(){
-  bool decoded = JpegDec.decodeArray(InsertCoin_jpg, 9028);
+void ScreenManager::dispWiFiConn(){
+  bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, 17502);
   if(decoded) {
     jpegRender(0, 0);
   }
