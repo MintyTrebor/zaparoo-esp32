@@ -1,3 +1,4 @@
+#pragma once
 #include "ZaparooEsp32.hpp"
 #include "InputManager.h"
 
