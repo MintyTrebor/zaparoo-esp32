@@ -16,13 +16,13 @@ void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackMa
 
 void InputManager::doRotaryButton(){
   if(lastScrnPos == 0){
-    Serial.println("Do Insert Coin Action");
+    Serial.println("Do Sleep Action");
   }
   if(lastScrnPos == 1){
-    Serial.println("Do 1Player Start Action");
+    Serial.println("Do Shutdown Action");
   }
   if(lastScrnPos == 2){
-    Serial.println("Do 2Player Start Action");
+    //Serial.println("Do 2Player Start Action");
   }
 }
 void InputManager::doRotaryTurn(){
@@ -38,22 +38,22 @@ void InputManager::doRotaryTurn(){
 }
 
 void InputManager::nextRotation(){
-  if(lastScrnPos == 3){
+  if(lastScrnPos == 2){
     lastScrnPos = 0;
   } 
   else {
     lastScrnPos++;
   }
   if(lastScrnPos == 0){
-    
+    screenManager->dispGotoSleep();
   }
   if(lastScrnPos == 1){
-    
+    screenManager->dispPowerOff();
   }
   if(lastScrnPos == 2){
-    
+    screenManager->dispNowPlaying();
   }
-  if(lastScrnPos == 3){
+  // if(lastScrnPos == 3){
     
-  }
+  // }
 }

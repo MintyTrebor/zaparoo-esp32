@@ -4,6 +4,8 @@
 #include <JPEGDecoder.h>
 #include "images/connectingAP.h"
 #include "images/connectingWiFi.h"
+#include "images/gotoSleep.h"
+#include "images/powerOff.h"
 
 class ScreenManager {
   private:
@@ -21,6 +23,8 @@ class ScreenManager {
     void dispAPConn();
     void dispWiFiConn();
     void dispNowPlaying();
+    void dispGotoSleep();
+    void dispPowerOff();
     void setNowPlayingPath(const char* nowPlayPath);
     void setDefImgPath(const char* defImgPath);
 };

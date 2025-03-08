@@ -55,6 +55,20 @@ void ScreenManager::dispWiFiConn(){
   }
 }
 
+void ScreenManager::dispGotoSleep(){
+  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, 28609);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispPowerOff(){
+  bool decoded = JpegDec.decodeArray(ZapPowerOff_jpg, 20542);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
 void ScreenManager::dispNowPlaying(){
   //Serial.println("CurrNPP: " + String(nowPlayingPath));
   if(nowPlayingPath == nullptr || strlen(nowPlayingPath) == 0){
