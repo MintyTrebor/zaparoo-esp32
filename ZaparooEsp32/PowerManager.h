@@ -11,4 +11,5 @@ class PowerManager {
     bool isBattConnected();
     void initCharging();
     void stopCharging();
+    void doShutdown();
 };

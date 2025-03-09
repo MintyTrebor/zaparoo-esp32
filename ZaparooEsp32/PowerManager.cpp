@@ -70,3 +70,7 @@ void PowerManager::stopCharging(){
   // otherwise the VSYS power supply will have a sawtooth wave, affecting the discharge output capability.
   PPM->disableCharge();
 }
+
+void PowerManager::doShutdown(){
+  PPM->shutdown();
+}

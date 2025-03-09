@@ -16,6 +16,7 @@
 #include "ZaparooScanner.cpp"
 #include "FeedbackManager.h"
 #include "Update.h"
+#include <ezButton.h>
 
 
 
@@ -37,6 +38,7 @@ String deviceType = "PN532";
 #include "bq27220.h"
 PN532_I2C pn532_i2c(Wire);
 String deviceType = "Lilygo";
+ezButton rotaryButton(ENCODER_KEY);
 ScreenManager scrnMan;
 InputManager inpMan;
 DeviceManager devMan;
@@ -581,10 +583,9 @@ void setup() {
     if(PPM.init(Wire, i2c_sda, i2c_scl, BOARD_I2C_ADDR_3)){
       Serial.println("Battery Initailising");
       pwrMan.init(&PPM);
-      //if(pwrMan.isBattConnected()){
-        bq27220.init();
-        xTaskCreate(battery_task, "battery_task", 1024 * 2, NULL, 4, &battery_handle);
-      //}
+      bq27220.init();
+      xTaskCreate(battery_task, "battery_task", 1024 * 2, NULL, 4, &battery_handle);
+
     }
     else{
       Serial.println("Battery not Initailised");
@@ -619,9 +620,10 @@ void setup() {
   scrnMan.dispDefaultImg("");
   delay(1000);
   feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan, &encoder, &feedback);
-  pinMode(ENCODER_KEY, INPUT);
-  attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
+  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan);
+  pinMode(ENCODER_KEY, INPUT);  
+  //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
+  rotaryButton.setDebounceTime(100);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
   xTaskCreatePinnedToCore(rotary, "rotary", 4096, NULL, 2, NULL,0);
@@ -703,14 +705,15 @@ void loop() {
 #ifdef Lilygo
 void rotary(void *pvParameters) {
   while(1){
+    rotaryButton.loop();
     int pos = 0;
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
       inpMan.doRotaryTurn();
     }
-    if(buttonTrigger){
-      buttonTrigger = false;
+    if(rotaryButton.isPressed()){
+      //buttonTrigger = false;
       inpMan.doRotaryButton();
     }
     delay(50);

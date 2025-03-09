@@ -14,6 +14,14 @@ void ScreenManager::init(){
   tftScr.init();
   //delay(500);  
 }
+void ScreenManager::screenSleep(){
+  tftScr.sleep(true);
+  tftScr.writecommand(ST7789_SLPIN);
+}
+
+void ScreenManager::screenWake(){
+
+}
 
 void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
   nowPlayingPath = nowPlayPath;
