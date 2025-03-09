@@ -9,7 +9,7 @@ class InputManager {
     RotaryEncoder* encoder = nullptr;
     FeedbackManager* feedbackManager;
     int lastRotationPos = 0;
-    int lastScrnPos = 2;
+    int lastScrnPos = 3;
   public:    
     InputManager();
     ~InputManager();    

@@ -22,6 +22,9 @@ void InputManager::doRotaryButton(){
     Serial.println("Do Shutdown Action");
   }
   if(lastScrnPos == 2){
+    Serial.println("Do Set Volume Action");
+  }
+  if(lastScrnPos == 3){
     //Serial.println("Do 2Player Start Action");
   }
 }
@@ -38,7 +41,7 @@ void InputManager::doRotaryTurn(){
 }
 
 void InputManager::nextRotation(){
-  if(lastScrnPos == 2){
+  if(lastScrnPos == 3){
     lastScrnPos = 0;
   } 
   else {
@@ -51,9 +54,9 @@ void InputManager::nextRotation(){
     screenManager->dispPowerOff();
   }
   if(lastScrnPos == 2){
+    screenManager->dispSetVolume();
+  }
+  if(lastScrnPos == 3){
     screenManager->dispNowPlaying();
   }
-  // if(lastScrnPos == 3){
-    
-  // }
 }

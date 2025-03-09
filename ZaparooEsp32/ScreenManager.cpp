@@ -56,7 +56,7 @@ void ScreenManager::dispWiFiConn(){
 }
 
 void ScreenManager::dispGotoSleep(){
-  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, 28609);
+  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, 24069);
   if(decoded) {
     jpegRender(0, 0);
   }
@@ -64,6 +64,13 @@ void ScreenManager::dispGotoSleep(){
 
 void ScreenManager::dispPowerOff(){
   bool decoded = JpegDec.decodeArray(ZapPowerOff_jpg, 20542);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispSetVolume(){
+  bool decoded = JpegDec.decodeArray(ZapSetVolume_jpg, 21739);
   if(decoded) {
     jpegRender(0, 0);
   }
