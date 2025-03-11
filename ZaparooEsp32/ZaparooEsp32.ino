@@ -16,6 +16,8 @@
 #include "ZaparooScanner.cpp"
 #include "FeedbackManager.h"
 #include "Update.h"
+#include <ezButton.h>
+
 
 
 
@@ -30,12 +32,24 @@ String deviceType = "PN532";
 #include "ScreenManager.h"
 #include "InputManager.h"
 #include "DeviceManager.h"
+#include "PowerManager.h"
 #include <RotaryEncoder.h>
+#include <XPowersLib.h>
+#include "bq27220.h"
 PN532_I2C pn532_i2c(Wire);
 String deviceType = "Lilygo";
+ezButton rotaryButton(ENCODER_KEY);
 ScreenManager scrnMan;
 InputManager inpMan;
 DeviceManager devMan;
+PowerManager pwrMan;
+XPowersPPM PPM;
+BQ27220 bq27220;
+BQ27220BatteryStatus bqBatt;
+TaskHandle_t battery_handle;
+const uint8_t i2c_sda = BOARD_I2C_SDA;
+const uint8_t i2c_scl = BOARD_I2C_SCL;
+bool pmu_ret = false;
 RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
 int lastRotPos = 0;
 bool buttonTrigger;
@@ -80,6 +94,7 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len);
 void doRotTurn(void);
 void doRotButn(void);
 void rotary(void *pvParameters);
+void battery_task(void *pvParameters);
 
 
 void setPref_Bool(const String& key, bool valBool) {
@@ -530,14 +545,52 @@ void setup() {
   digitalWrite(BOARD_LORA_CS, HIGH);
   pinMode(BOARD_PWR_EN, OUTPUT);
   digitalWrite(BOARD_PWR_EN, HIGH);
+  pinMode(BOARD_PN532_IRQ, OPEN_DRAIN);
+  pinMode(BOARD_USER_KEY, INPUT);
   SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
   Wire.setPins(BOARD_I2C_SDA, BOARD_I2C_SCL);
-  Wire.begin();
+  // iic scan
+  uint8_t error, address;
+  int nDevices = 0;
+  bool pmu_ret = false;
+  bool lora_ret = false;
+  Serial.println("Scanning for I2C devices ...");
+  Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+  for(address = 0x01; address < 0x7F; address++){
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    if(error == 0){ // 0: success.
+        nDevices++;
+        if(address == BOARD_I2C_ADDR_2) {
+            pmu_ret = true;
+            Serial.println("I2C device found at BQ27220 address: " + String(address));
+        }else if(address == BOARD_I2C_ADDR_3) {
+            lora_ret = true;
+            Serial.println("I2C device found at BQ25896 address: " + String(address));
+        }
+    }
+  }
+  if (nDevices == 0){
+    Serial.println("No I2C devices found");
+  }
   ZaparooPN532Scanner* pnScanner = new ZaparooPN532Scanner();
   pnScanner->setConfig(pn532_i2c);
   pnScanner->setResetPin(PN532_RST_PIN);
   tokenScanner = pnScanner;
   isPN532 = true;
+  //Battery&PowerManagement
+  if(pmu_ret){
+    if(PPM.init(Wire, i2c_sda, i2c_scl, BOARD_I2C_ADDR_3)){
+      Serial.println("Battery Initailising");
+      pwrMan.init(&PPM);
+      bq27220.init();
+      xTaskCreate(battery_task, "battery_task", 1024 * 2, NULL, 4, &battery_handle);
+
+    }
+    else{
+      Serial.println("Battery not Initailised");
+    }
+  }
 #endif
 #ifdef PN532
   SPI.begin();
@@ -567,9 +620,10 @@ void setup() {
   scrnMan.dispDefaultImg("");
   delay(1000);
   feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan, &encoder, &feedback);
-  pinMode(ENCODER_KEY, INPUT);
-  attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
+  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan);
+  pinMode(ENCODER_KEY, INPUT);  
+  //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
+  rotaryButton.setDebounceTime(100);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
   xTaskCreatePinnedToCore(rotary, "rotary", 4096, NULL, 2, NULL,0);
@@ -651,17 +705,26 @@ void loop() {
 #ifdef Lilygo
 void rotary(void *pvParameters) {
   while(1){
+    rotaryButton.loop();
     int pos = 0;
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
       inpMan.doRotaryTurn();
     }
-    if(buttonTrigger){
-      buttonTrigger = false;
+    if(rotaryButton.isPressed()){
+      //buttonTrigger = false;
       inpMan.doRotaryButton();
     }
     delay(50);
+  }
+}
+void battery_task(void *pvParameters) {
+  while(1){
+    bq27220.getBatteryStatus(&bqBatt);
+    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    delay(10000);
   }
 }
 #endif

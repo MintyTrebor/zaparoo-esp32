@@ -14,6 +14,14 @@ void ScreenManager::init(){
   tftScr.init();
   //delay(500);  
 }
+void ScreenManager::screenSleep(){
+  tftScr.sleep(true);
+  tftScr.writecommand(ST7789_SLPIN);
+}
+
+void ScreenManager::screenWake(){
+
+}
 
 void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
   nowPlayingPath = nowPlayPath;
@@ -50,6 +58,27 @@ void ScreenManager::dispAPConn(){
 
 void ScreenManager::dispWiFiConn(){
   bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, 18631);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispGotoSleep(){
+  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, 24069);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispPowerOff(){
+  bool decoded = JpegDec.decodeArray(ZapPowerOff_jpg, 20542);
+  if(decoded) {
+    jpegRender(0, 0);
+  }
+}
+
+void ScreenManager::dispSetVolume(){
+  bool decoded = JpegDec.decodeArray(ZapSetVolume_jpg, 21739);
   if(decoded) {
     jpegRender(0, 0);
   }
