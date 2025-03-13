@@ -3,6 +3,7 @@
 
 #define UID_MAP_FILE "/uidExtdRecord.json"
 
+
 FeedbackManager::FeedbackManager() {
 }
 
@@ -61,6 +62,10 @@ void FeedbackManager::initScreen(ScreenManager* scrnMgr) {
   screenManager->setDefImgPath(defaultImgPath.c_str());
 }
 #endif
+
+void FeedbackManager::initUidDataManager(UIDDataManager* UidDM) {
+  UidDMan = UidDM;
+}
 
 void FeedbackManager::createUidMappingFile(){
   File uidFile;
@@ -129,7 +134,7 @@ void FeedbackManager::setupPins() {
       ledRingRed();
     }
   }
-  if (sdCardEnabled || deviceType == "Lilygo") {
+  if (sdCardEnabled) {
     if (!SD.begin(BOARD_SD_CS)) {
       Serial.println(F("failed to do SD Card"));
     }

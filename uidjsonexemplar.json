@@ -1,0 +1,19 @@
+{
+    "audio":{
+        "launchAudio":"",
+        "removeAudio":""
+    },
+    "menus":[
+        {
+            "menuID":,
+            "menuItems":[{
+                "itemId":,
+                "itemImage": "",
+                "itemText": "",
+                "itemTextColour": "",
+                "itemActionType": "",
+                "itemActionData": ""
+            }]
+        }
+    ]
+}

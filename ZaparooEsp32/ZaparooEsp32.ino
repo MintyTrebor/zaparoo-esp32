@@ -15,6 +15,7 @@
 #include "ZaparooEsp32.hpp"
 #include "ZaparooScanner.cpp"
 #include "FeedbackManager.h"
+#include "UIDDataManager.h"
 #include "Update.h"
 #include <ezButton.h>
 
@@ -69,6 +70,7 @@ AsyncWebSocket ws1("/ws");
 ZaparooLaunchApi ZapClient;
 ZaparooScanner* tokenScanner = NULL;
 FeedbackManager feedback;
+UIDDataManager UidDM;
 
 
 //globals
@@ -615,6 +617,8 @@ void setup() {
   }
   preferences.begin("qrplay", false);
   feedback.init(&preferences, deviceType, &devMan);
+  UidDM.init(feedback.sdCardEnabled);
+  feedback.initUidDataManager(&UidDM);
 #ifdef Lilygo
   scrnMan.init();
   scrnMan.dispDefaultImg("");

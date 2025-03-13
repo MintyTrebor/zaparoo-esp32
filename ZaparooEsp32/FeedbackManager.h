@@ -7,6 +7,7 @@
 #include "ZaparooEsp32.hpp"
 #include <FastLED.h>
 #include "DeviceManager.h"
+#include "UIDDataManager.h"
 
 #ifdef Lilygo
 #include "ScreenManager.h"
@@ -16,6 +17,7 @@ class FeedbackManager {
 private:
     Preferences* preferences;
     DeviceManager* devMangr;
+    UIDDataManager* UidDMan;
     #ifdef Lilygo
     ScreenManager* screenManager;
     #endif
@@ -80,5 +82,6 @@ public:
     void doDefaultScreen(String devType);
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
-    #endif  
+    #endif
+    void initUidDataManager(UIDDataManager* UidDM);  
 };
