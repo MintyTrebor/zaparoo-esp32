@@ -97,6 +97,7 @@ void doRotTurn(void);
 void doRotButn(void);
 void rotary(void *pvParameters);
 void battery_task(void *pvParameters);
+void getUIDFileJson(const char* fileUID);
 
 
 void setPref_Bool(const String& key, bool valBool) {
@@ -448,9 +449,9 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       notifyClients(enableUIDMode ? "UID Scanning Mode Enabled" : "UID Scanning Mode Disabled", "alert");
       uidScanMode= enableUIDMode;
       //get UIDExtdRec data if enabling UID mode
-      if(enableUIDMode){
-        getUIDExtdRec();
-      }
+      // if(enableUIDMode){
+      //   getUIDExtdRec();
+      // }
   } else if (command == "saveUIDExtdRec") {
       notifyClients("Saving UIDExtdRec Data", "log");
       JsonDocument data = root["data"];
@@ -465,9 +466,27 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       handleResetRequest();
   } else if (command == "ping") {
       notifyClients("KeepAlive", "log");
+  } else if (command == "getUIDFileJson") {
+      notifyClients("Retreiving UID File Json", "log");
+      String tmpUID = root["data"]["UID"].as<String>();
+      getUIDFileJson(tmpUID.c_str());
+  } else if (command == "saveUIDFileJson") {
+      notifyClients("Saving UID File Json", "log");
+      String tmpUID = root["data"]["UID"].as<String>();
+      JsonDocument data = root["data"]["fileJson"];
+      UidDM.updateUidFileJson(tmpUID.c_str(), data);
   } else {
     notifyClients("Unknown Command", "log");
   }
+}
+
+void getUIDFileJson(const char* fileUID){
+  JsonDocument tmpDataDoc;
+  JsonDocument tmpFileData;
+  UidDM.getUidFileJson(fileUID, tmpFileData);
+  tmpDataDoc["UID"] = String(fileUID);
+  tmpDataDoc["fileJson"] = tmpFileData;
+  cmdClients(tmpDataDoc);
 }
 
 void handleSend(){
@@ -689,6 +708,7 @@ void setup() {
   fileManager->setServer(&server);
   fileManager->begin();
   feedback.createUidMappingFile();
+  UidDM.createUidDataDirectory();
 }
 #ifdef Lilygo
 void doRotButn(void){

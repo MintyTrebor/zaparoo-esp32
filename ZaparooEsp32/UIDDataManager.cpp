@@ -43,21 +43,7 @@ void UIDDataManager::createUidDataDirectory(){
   }
 }
 
-void UIDDataManager::createNewUidFile(const char* UID, JsonDocument& fileDataJson){
-  File uidFile;
-  String tmpJson = "";
-  String filePath = String(UID_DATA_DIR) + "/" + String(UID) + ".json";
-  if(SDCardEnabled){
-    uidFile = SD.open(filePath, FILE_WRITE);
-  }else{
-    uidFile = LittleFS.open(filePath, FILE_WRITE);
-  }
-  serializeJson(fileDataJson, tmpJson);
-  uidFile.print(tmpJson);
-  uidFile.close();
-}
-
-void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument& fileDataJson){
+void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument fileDataJson){
   File uidFile;
   String tmpJson = "";
   String filePath = String(UID_DATA_DIR) + "/" + String(UID) + ".json";
