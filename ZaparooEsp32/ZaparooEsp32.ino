@@ -97,8 +97,6 @@ void doRotTurn(void);
 void doRotButn(void);
 void rotary(void *pvParameters);
 void battery_task(void *pvParameters);
-void getUIDFileJson(const char* fileUID);
-
 
 void setPref_Bool(const String& key, bool valBool) {
   preferences.putBool(key.c_str(), valBool);
@@ -349,8 +347,11 @@ bool sendUid(String& uid) {
 //Send the detected UID to Web Client for Audio Mapping
 void sendUIDtoWeb(String UIDStr){
   JsonDocument UIDData;
-  UIDData["msgType"] = "UIDTokenID";
-  UIDData["data"] = UIDStr;
+  JsonDocument fileData;
+  UidDM.getUidFileJson(UIDStr.c_str(), fileData);
+  UIDData["msgType"] = "pushedUIDFileJson";
+  UIDData["data"]["UIDstr"] = UIDStr;
+  UIDData["data"]["fileJson"] = fileData;
   cmdClients(UIDData);
 }
 
@@ -441,21 +442,21 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       setPref_Bool("enNfcWr", false);
       ws1.closeAll();
       ws1.cleanupClients();
-  } else if (command == "getUIDExtdRec") {
-      notifyClients("Retrieving UIDExtdRec Data", "log");
-      getUIDExtdRec();
+  // } else if (command == "getUIDExtdRec") {
+  //     notifyClients("Retrieving UIDExtdRec Data", "log");
+  //     getUIDExtdRec();
   } else if (command == "set_UIDMode") {
       bool enableUIDMode = root["data"];
       notifyClients(enableUIDMode ? "UID Scanning Mode Enabled" : "UID Scanning Mode Disabled", "alert");
-      uidScanMode= enableUIDMode;
+      uidScanMode = enableUIDMode;
       //get UIDExtdRec data if enabling UID mode
       // if(enableUIDMode){
       //   getUIDExtdRec();
       // }
-  } else if (command == "saveUIDExtdRec") {
-      notifyClients("Saving UIDExtdRec Data", "log");
-      JsonDocument data = root["data"];
-      feedback.saveUidMapping(data);
+  // } else if (command == "saveUIDExtdRec") {
+  //     notifyClients("Saving UIDExtdRec Data", "log");
+  //     JsonDocument data = root["data"];
+  //     feedback.saveUidMapping(data);
   } else if (command == "wifi") {
     setPref_Str("wifiSSID", root["data"]["ssid"].as<String>());
     setPref_Str("wifiPass", root["data"]["password"].as<String>());
@@ -466,13 +467,9 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       handleResetRequest();
   } else if (command == "ping") {
       notifyClients("KeepAlive", "log");
-  } else if (command == "getUIDFileJson") {
-      notifyClients("Retreiving UID File Json", "log");
-      String tmpUID = root["data"]["UID"].as<String>();
-      getUIDFileJson(tmpUID.c_str());
   } else if (command == "saveUIDFileJson") {
       notifyClients("Saving UID File Json", "log");
-      String tmpUID = root["data"]["UID"].as<String>();
+      String tmpUID = root["data"]["UIDstr"].as<String>();
       JsonDocument data = root["data"]["fileJson"];
       UidDM.updateUidFileJson(tmpUID.c_str(), data);
   } else {
@@ -480,14 +477,6 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
   }
 }
 
-void getUIDFileJson(const char* fileUID){
-  JsonDocument tmpDataDoc;
-  JsonDocument tmpFileData;
-  UidDM.getUidFileJson(fileUID, tmpFileData);
-  tmpDataDoc["UID"] = String(fileUID);
-  tmpDataDoc["fileJson"] = tmpFileData;
-  cmdClients(tmpDataDoc);
-}
 
 void handleSend(){
   bool sent = false;
@@ -745,9 +734,9 @@ void rotary(void *pvParameters) {
 }
 void battery_task(void *pvParameters) {
   while(1){
-    bq27220.getBatteryStatus(&bqBatt);
-    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    // bq27220.getBatteryStatus(&bqBatt);
+    // Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    // Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
     delay(10000);
   }
 }

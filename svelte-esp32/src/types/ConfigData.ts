@@ -56,6 +56,29 @@ export interface ConfigData {
   deviceType: string;
 };
 
+export interface UIDFileJson {
+  launchAudio: string;
+  removeAudio: string;
+  menus: Array<menu>;
+}
+
+
+export interface menu {
+  menuID: number;
+  menuItems: Array<menuItem>;
+}
+
+export interface menuItem {
+    itemID: number;
+    itemImage: string;
+    itemAudio: string;
+    itemText: string;
+    itemTextColour: string;
+    itemActionType: string;
+    itemActionData: string;
+    itemActionAudio: string;
+}
+
 export interface UIDExtdRecord {
   UID: string;
   launchAudio: string;

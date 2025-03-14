@@ -1,5 +1,5 @@
 import { writable, type Readable, type Writable } from "svelte/store";
-import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage } from "../types/ConfigData";
+import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage, UIDFileJson, menuItem, menu } from "../types/ConfigData";
 import { EspUtils } from "./EspUtils";
 import { LogUtils } from "./LogUtils";
 
@@ -7,6 +7,9 @@ export class UIDUtils{
     private static currentUIDData: UIDExtdRecords;
     private static currentUIDRecord: Writable<UIDExtdRecord> = writable({} as UIDExtdRecord);
     private static isUIDModeEnabled= false;
+    private static currentScannedFileJson: Writable<UIDFileJson> = writable({} as UIDFileJson);
+    private static currentScannedUID: string;
+
 
     private static getBlankESPMsg(): EspMessage{
         return {} as EspMessage;
@@ -29,6 +32,14 @@ export class UIDUtils{
     
     static UIDRecord(): Readable<UIDExtdRecord> {
         return this.currentUIDRecord;
+    }
+
+    static getNewMenuItem(): menuItem{
+        return {} as menuItem;
+    }
+
+    static getNewMenu(): menu{
+        return {} as menu;
     }
 
     static processUIDExtData(UIDData: UIDExtdRecsMessage){
@@ -73,4 +84,33 @@ export class UIDUtils{
         LogUtils.notify("UID Control Record Saved");
     }
 
+    static processUIDFileJson(fileData: UIDFileJson, currUID: string){
+        this.currentScannedUID = currUID;
+        let currData: UIDFileJson = fileData;
+        this.currentScannedFileJson.set(currData);
+    }
+
+    static scannedUIDFileJson(): Readable<UIDFileJson> {
+        return this.currentScannedFileJson;
+    }
+
+    static saveUIDFileJson(fileData: UIDFileJson){
+        let newCMD = this.getBlankESPMsg();
+        newCMD.cmd = "saveUIDFileJson";
+        newCMD.data = {
+            UIDstr: this.currentScannedUID,
+            fileJson: fileData
+        }
+        newCMD.data.fileJson = fileData;
+        EspUtils.sendMessage(newCMD);
+        LogUtils.notify("UID Control File Saved");
+    }
+
+    static getBlankFileJson(): UIDFileJson{
+        return {} as UIDFileJson;
+    }
+
+    static currScannedUID(): string {
+        return this.currentScannedUID;
+    }
 }

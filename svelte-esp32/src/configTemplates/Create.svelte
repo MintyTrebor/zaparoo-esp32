@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, UIDExtdRecord } from '../types/ConfigData';
+  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, UIDExtdRecord, UIDFileJson } from '../types/ConfigData';
   import { ZapUtils } from '../backend/ZapUtils';
   import { CommonUtils } from '../backend/CommonUtils';
   import { EspUtils } from "../backend/EspUtils";
@@ -13,8 +13,10 @@
   let uidRecord: UIDExtdRecord = UIDUtils.getBlank();
   let lastUIDVal : string = "";
   let config: ConfigData = EspUtils.getBlank();
+  let uidFJson: UIDFileJson = UIDUtils.getBlankFileJson();
+  UIDUtils.scannedUIDFileJson().subscribe(value=> tempUID(value));
   EspUtils.config().subscribe(value=> config = value);
-  UIDUtils.UIDRecord().subscribe(value=> tempUID(value));
+  //UIDUtils.UIDRecord().subscribe(value=> tempUID(value));
   ZapUtils.zapSrcRes().subscribe(value=> zapSrchRes = value);
   ZapUtils.indexedSystemsList().subscribe(value=> zapSysList = value);
   ZapUtils.htmlSrchRes().subscribe(value=> htmlSerRes = value);
@@ -53,9 +55,15 @@
       }
   }
 
-  function tempUID(currUIDrec: UIDExtdRecord){
-    if(lastUIDVal != currUIDrec.UID){
-      lastUIDVal = currUIDrec.UID;
+  // function tempUID(currUIDrec: UIDExtdRecord){
+  //   if(lastUIDVal != currUIDrec.UID){
+  //     lastUIDVal = currUIDrec.UID;
+  //   }
+  // }
+
+  function tempUID(currUIDrec: UIDFileJson){
+    if(lastUIDVal != UIDUtils.currScannedUID()){
+      lastUIDVal = UIDUtils.currScannedUID();
     }
   }
 

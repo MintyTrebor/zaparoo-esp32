@@ -84,6 +84,9 @@ export class EspUtils{
                 this.websocket.close();
                 setTimeout(()=> this.initWebSocket(), 2000);
                 break;
+            case "pushedUIDFileJson":
+                UIDUtils.processUIDFileJson(msgData.data.fileJson, msgData.data.UIDstr);
+                break;
         }
     }
 

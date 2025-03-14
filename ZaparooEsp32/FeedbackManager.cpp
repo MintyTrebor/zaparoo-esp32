@@ -439,70 +439,74 @@ void FeedbackManager::successActions(ZaparooToken* obj) {
 
 void FeedbackManager::setUidAudioMappings(ZaparooToken* obj) {
     if (!audioEnabled) return;
-    File file;
+    // File file;
     JsonDocument uidFile;
 
-    if (sdCardEnabled && SD.exists(UID_MAP_FILE)) {
-        file = SD.open(UID_MAP_FILE, FILE_READ);
-    } else if (LittleFS.exists(UID_MAP_FILE)) {
-        file = LittleFS.open(UID_MAP_FILE, "r");
-    } else {
-        return;
-    }
+    // if (sdCardEnabled && SD.exists(UID_MAP_FILE)) {
+    //     file = SD.open(UID_MAP_FILE, FILE_READ);
+    // } else if (LittleFS.exists(UID_MAP_FILE)) {
+    //     file = LittleFS.open(UID_MAP_FILE, "r");
+    // } else {
+    //     return;
+    // }
 
-    String uid = String(obj->getId());
-    while (file.available()) {
-        DeserializationError error = deserializeJson(uidFile, file);
-        if (!error) {
-            for (JsonObject item : uidFile["UID_ExtdRecs"].as<JsonArray>()) {
-                if (item["UID"] == uid) {
-                    obj->setLaunchAudio(item["launchAudio"].as<String>().c_str());
-                    obj->setRemoveAudio(item["removeAudio"].as<String>().c_str());
-                    file.close();
-                    return;
-                }
-            }
-        }
-    }
-    file.close();
+    //String uid = String(obj->getId());
+    // while (file.available()) {
+    //     DeserializationError error = deserializeJson(uidFile, file);
+    //     if (!error) {
+    //         for (JsonObject item : uidFile["UID_ExtdRecs"].as<JsonArray>()) {
+    //             if (item["UID"] == uid) {
+    //                 obj->setLaunchAudio(item["launchAudio"].as<String>().c_str());
+    //                 obj->setRemoveAudio(item["removeAudio"].as<String>().c_str());
+    //                 file.close();
+    //                 return;
+    //             }
+    //         }
+    //     }
+    // }
+    // file.close();
+    UidDMan->getUidFileJson(obj->getId(), uidFile);
+    obj->setLaunchAudio(uidFile["launchAudio"].as<String>().c_str());
+    obj->setRemoveAudio(uidFile["removeAudio"].as<String>().c_str());
+
 }
 
-void FeedbackManager::getUidMappings(JsonDocument& toSet){
-  JsonDocument parsed;
-  File file;
-  toSet["msgType"] = "getUIDExtdRec";
-  if(sdCardEnabled && SD.exists(UID_MAP_FILE)){
-    file = SD.open(UID_MAP_FILE, FILE_READ);
-  }else if(LittleFS.exists(UID_MAP_FILE)){
-    file = LittleFS.open(UID_MAP_FILE, "r");
-  }
-  while (file.available()) { 
-    DeserializationError error = deserializeJson(parsed, file);
-    if(!error){
-      toSet["data"] = parsed;
-      file.close();
-      return;
-    }
-  }
-  file.close();
-  return;
-}
+// void FeedbackManager::getUidMappings(JsonDocument& toSet){
+//   JsonDocument parsed;
+//   File file;
+//   toSet["msgType"] = "getUIDExtdRec";
+//   if(sdCardEnabled && SD.exists(UID_MAP_FILE)){
+//     file = SD.open(UID_MAP_FILE, FILE_READ);
+//   }else if(LittleFS.exists(UID_MAP_FILE)){
+//     file = LittleFS.open(UID_MAP_FILE, "r");
+//   }
+//   while (file.available()) { 
+//     DeserializationError error = deserializeJson(parsed, file);
+//     if(!error){
+//       toSet["data"] = parsed;
+//       file.close();
+//       return;
+//     }
+//   }
+//   file.close();
+//   return;
+// }
 
-void FeedbackManager::saveUidMapping(JsonDocument &value){
-  File file;
-  if(sdCardEnabled && SD.exists(UID_MAP_FILE)){
-    file = SD.open(UID_MAP_FILE, FILE_WRITE);
-  }else if(LittleFS.exists(UID_MAP_FILE)){
-    file = LittleFS.open(UID_MAP_FILE, FILE_WRITE);
-  }
-  while (file.available()) {
-    serializeJson(value, file);
-    file.close();
-    return;
-  }
-  file.close();
-  return;
-}
+// void FeedbackManager::saveUidMapping(JsonDocument &value){
+//   File file;
+//   if(sdCardEnabled && SD.exists(UID_MAP_FILE)){
+//     file = SD.open(UID_MAP_FILE, FILE_WRITE);
+//   }else if(LittleFS.exists(UID_MAP_FILE)){
+//     file = LittleFS.open(UID_MAP_FILE, FILE_WRITE);
+//   }
+//   while (file.available()) {
+//     serializeJson(value, file);
+//     file.close();
+//     return;
+//   }
+//   file.close();
+//   return;
+// }
 
 int FeedbackManager::playAudio(const char* audioPath) {
     if (!audioEnabled || !audioPath || strlen(audioPath) == 0) {

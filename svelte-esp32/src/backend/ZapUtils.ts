@@ -392,12 +392,13 @@ export class ZapUtils{
         }
         //console.log("wscmd: ", wscmd)
         this.zapSvsSocket.send(JSON.stringify(wscmd));
-        let tmpUIDRec = UIDUtils.getBlank();
-        tmpUIDRec.UID = currUID;
-        tmpUIDRec.launchAudio = aLaunchP;
-        tmpUIDRec.removeAudio = aRemoveP;
-        UIDUtils.updateUIDRecord(tmpUIDRec);
-        UIDUtils.setUIDMode(false);        
+        // let tmpUIDRec = UIDUtils.getBlank();
+        // tmpUIDRec.UID = currUID;
+        // tmpUIDRec.launchAudio = aLaunchP;
+        // tmpUIDRec.removeAudio = aRemoveP;
+        // UIDUtils.updateUIDRecord(tmpUIDRec);
+        UIDUtils.setUIDMode(false); 
+               
     }
 
 }
