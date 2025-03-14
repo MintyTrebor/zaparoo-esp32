@@ -277,11 +277,11 @@ void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRem
 }
 
 //Load the UIDExtdRec.json and pass to Web Client
-void getUIDExtdRec(){
-  JsonDocument result;
-  feedback.getUidMappings(result);
-  cmdClients(result);
-}
+// void getUIDExtdRec(){
+//   JsonDocument result;
+//   feedback.getUidMappings(result);
+//   cmdClients(result);
+// }
 
 
 bool send(String& gamePath) {
@@ -734,9 +734,9 @@ void rotary(void *pvParameters) {
 }
 void battery_task(void *pvParameters) {
   while(1){
-    // bq27220.getBatteryStatus(&bqBatt);
-    // Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    // Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    bq27220.getBatteryStatus(&bqBatt);
+    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
     delay(10000);
   }
 }
