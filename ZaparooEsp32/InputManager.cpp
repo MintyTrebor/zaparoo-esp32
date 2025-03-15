@@ -17,6 +17,39 @@ void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackMa
   powerManager = pwrMan;
 }
 
+void InputManager:: getMainMenu(JsonDocument& menuJson){
+  JsonDocument blankJson;
+  blankJson["menus"][0]["menuID"] = 9999;
+  //itemID 1 = Now Playing
+  blankJson["menus"][0]["menuItems"][0]["itemID"] = 1;
+  blankJson["menus"][0]["menuItems"][0]["itemImage"] = "dispNowPlaying";
+  blankJson["menus"][0]["menuItems"][0]["itemAudio"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemText"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemTextColour"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemActionType"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemActionData"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemActionAudio"] = "";
+  //itemID 2 = Sleep
+  blankJson["menus"][0]["menuItems"][1]["itemID"] = 2;
+  blankJson["menus"][0]["menuItems"][1]["itemImage"] = "dispGotoSleep";
+  blankJson["menus"][0]["menuItems"][1]["itemAudio"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemText"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemTextColour"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemActionType"] = "internal";
+  blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doDeepSleep";
+  blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
+  //itemID 3 = Power Off
+  blankJson["menus"][0]["menuItems"][1]["itemID"] = 3;
+  blankJson["menus"][0]["menuItems"][1]["itemImage"] = "dispPowerOff";
+  blankJson["menus"][0]["menuItems"][1]["itemAudio"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemText"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemTextColour"] = "";
+  blankJson["menus"][0]["menuItems"][1]["itemActionType"] = "internal";
+  blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doShutdown";
+  blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
+  menuJson = blankJson;
+}
+
 void InputManager::doRotaryButton(){
   if(lastScrnPos == 0){
     Serial.println("Do Sleep Action");
@@ -33,20 +66,25 @@ void InputManager::doRotaryButton(){
     //Serial.println("Do 2Player Start Action");
   }
 }
-void InputManager::doRotaryTurn(){
+void InputManager::doRotaryTurn(int currDir){
   int currRotPos = encoder->getPosition();
-  if(lastRotationPos != currRotPos){
+  if(lastRotationPos < currRotPos){
     nextRotation();
+    lastRotationPos = currRotPos;
+    encoder->tick();
+  }else if(lastRotationPos > currRotPos){
+    previousRotation();
     lastRotationPos = currRotPos;
     encoder->tick();
   }else{
     encoder->tick();
   }
-  //Serial.println(String(currRotPos));
+  // Serial.println("Position: " + String(currRotPos));
+  // Serial.println("Direction: " + String(currDir));
 }
 
 void InputManager::nextRotation(){
-  if(lastScrnPos == 3){
+  if(lastScrnPos == 2){
     lastScrnPos = 0;
   } 
   else {
@@ -59,9 +97,24 @@ void InputManager::nextRotation(){
     screenManager->dispPowerOff();
   }
   if(lastScrnPos == 2){
-    screenManager->dispSetVolume();
+    screenManager->dispNowPlaying();
   }
-  if(lastScrnPos == 3){
+}
+
+void InputManager::previousRotation(){
+  if(lastScrnPos == 0){
+    lastScrnPos = 2;
+  } 
+  else {
+    lastScrnPos--;
+  }
+  if(lastScrnPos == 0){
+    screenManager->dispGotoSleep();
+  }
+  if(lastScrnPos == 1){
+    screenManager->dispPowerOff();
+  }
+  if(lastScrnPos == 2){
     screenManager->dispNowPlaying();
   }
 }

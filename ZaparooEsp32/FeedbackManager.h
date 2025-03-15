@@ -70,8 +70,6 @@ public:
     void expressError(int code);
     void successActions(ZaparooToken* obj);
     void setUidAudioMappings(ZaparooToken* obj);
-    //void getUidMappings(JsonDocument& toSet);
-    //void saveUidMapping(JsonDocument& value);
     int playAudio(const char* audioPath);
     void cardInsertedActions(ZaparooToken* obj);
     void cardRemovedActions(ZaparooToken* obj);
@@ -80,8 +78,9 @@ public:
     void doWiFiAP(String devType);
     void doWiFiConn(String devType);
     void doDefaultScreen(String devType);
+    void initUidDataManager(UIDDataManager* UidDM); 
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
     #endif
-    void initUidDataManager(UIDDataManager* UidDM);  
+     
 };

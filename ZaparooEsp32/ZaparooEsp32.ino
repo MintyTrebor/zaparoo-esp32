@@ -276,13 +276,6 @@ void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRem
   tokenScanner->halt();
 }
 
-//Load the UIDExtdRec.json and pass to Web Client
-// void getUIDExtdRec(){
-//   JsonDocument result;
-//   feedback.getUidMappings(result);
-//   cmdClients(result);
-// }
-
 
 bool send(String& gamePath) {
   String message;
@@ -348,7 +341,8 @@ bool sendUid(String& uid) {
 void sendUIDtoWeb(String UIDStr){
   JsonDocument UIDData;
   JsonDocument fileData;
-  UidDM.getUidFileJson(UIDStr.c_str(), fileData);
+  bool fExists = false;
+  UidDM.getUidFileJson(UIDStr.c_str(), fileData, fExists);
   UIDData["msgType"] = "pushedUIDFileJson";
   UIDData["data"]["UIDstr"] = UIDStr;
   UIDData["data"]["fileJson"] = fileData;
@@ -442,21 +436,10 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       setPref_Bool("enNfcWr", false);
       ws1.closeAll();
       ws1.cleanupClients();
-  // } else if (command == "getUIDExtdRec") {
-  //     notifyClients("Retrieving UIDExtdRec Data", "log");
-  //     getUIDExtdRec();
   } else if (command == "set_UIDMode") {
       bool enableUIDMode = root["data"];
       notifyClients(enableUIDMode ? "UID Scanning Mode Enabled" : "UID Scanning Mode Disabled", "alert");
       uidScanMode = enableUIDMode;
-      //get UIDExtdRec data if enabling UID mode
-      // if(enableUIDMode){
-      //   getUIDExtdRec();
-      // }
-  // } else if (command == "saveUIDExtdRec") {
-  //     notifyClients("Saving UIDExtdRec Data", "log");
-  //     JsonDocument data = root["data"];
-  //     feedback.saveUidMapping(data);
   } else if (command == "wifi") {
     setPref_Str("wifiSSID", root["data"]["ssid"].as<String>());
     setPref_Str("wifiPass", root["data"]["password"].as<String>());
@@ -472,6 +455,11 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       String tmpUID = root["data"]["UIDstr"].as<String>();
       JsonDocument data = root["data"]["fileJson"];
       UidDM.updateUidFileJson(tmpUID.c_str(), data);
+  } else if (command == "partialUpdUidFileJson") {
+      notifyClients("Updating UID File Json", "log");
+      String tmpUID = root["data"]["UIDstr"].as<String>();
+      JsonDocument data = root["data"]["fileJson"];
+      UidDM.partialUpdUidFileJson(tmpUID.c_str(), data);
   } else {
     notifyClients("Unknown Command", "log");
   }
@@ -717,13 +705,14 @@ void loop() {
 }
 #ifdef Lilygo
 void rotary(void *pvParameters) {
+  int pos = 0;
   while(1){
     rotaryButton.loop();
-    int pos = 0;
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
-      inpMan.doRotaryTurn();
+      inpMan.doRotaryTurn(int(encoder.getDirection()));
+      pos = newPos;
     }
     if(rotaryButton.isPressed()){
       //buttonTrigger = false;
@@ -735,8 +724,13 @@ void rotary(void *pvParameters) {
 void battery_task(void *pvParameters) {
   while(1){
     bq27220.getBatteryStatus(&bqBatt);
-    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    // Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    // Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    if(bq27220.getStateOfCharge() < 90 && !bq27220.getIsCharging()){
+      pwrMan.initCharging();
+    } else {
+      pwrMan.stopCharging();
+    }
     delay(10000);
   }
 }

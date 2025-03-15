@@ -23,6 +23,8 @@ void UIDDataManager::getUidFileDefaultJson(JsonDocument& fdJson){
   JsonDocument blankJson;
   blankJson["launchAudio"] = "";
   blankJson["removeAudio"] = "";
+  blankJson["launchImg"] = "";
+  blankJson["launchImgMenuID"] = 0;
   blankJson["menus"][0]["menuID"] = 0;
   blankJson["menus"][0]["menuItems"][0]["itemID"] = 0;
   blankJson["menus"][0]["menuItems"][0]["itemImage"] = "";
@@ -47,6 +49,48 @@ void UIDDataManager::createUidDataDirectory(){
   }
 }
 
+void UIDDataManager::partialUpdUidFileJson(const char* UID, JsonDocument updateDataJson){
+  File uidFile;
+  String tmpJson = "";
+  String filePath = String(UID_DATA_DIR) + "/" + String(UID) + ".json";
+  bool exists = true;
+  JsonDocument blankJson;
+  if(SDCardEnabled){
+    if(SD.exists(filePath.c_str())){
+      uidFile = SD.open(filePath.c_str());
+    } else {
+      exists = false;
+    }
+  }else if(LittleFS.exists(filePath.c_str())){
+    uidFile = LittleFS.open(filePath.c_str());
+  }else {
+    exists = false;
+  }
+  if(!exists){
+    Serial.println("Did not find file");
+    //get empty data set    
+    getUidFileDefaultJson(blankJson);    
+  }else {
+    Serial.println("Found file");
+    while (uidFile.available()) { 
+      DeserializationError error = deserializeJson(blankJson, uidFile);        
+    }
+    uidFile.close();
+  }
+  if(SDCardEnabled){
+    uidFile = SD.open(filePath, FILE_WRITE);
+  }else{
+    uidFile = LittleFS.open(filePath, FILE_WRITE);
+  }
+  blankJson["launchAudio"] = updateDataJson["launchAudio"];
+  blankJson["removeAudio"] = updateDataJson["removeAudio"];
+  blankJson["launchImg"] = updateDataJson["launchImg"];
+  blankJson["launchImgMenuID"] = updateDataJson["launchImgMenuID"];
+  serializeJson(blankJson, tmpJson);
+  uidFile.print(tmpJson);
+  uidFile.close();
+}
+
 void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument updateDataJson){
   File uidFile;
   String tmpJson = "";
@@ -61,7 +105,7 @@ void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument updateDataJ
   uidFile.close();
 }
 
-void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJson){
+void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJson, bool& fileExists){
   String filePath = String(UID_DATA_DIR) + "/" + String(UID) + ".json";
   Serial.println("Looking for file: " + filePath);
   File uidFile;
@@ -69,13 +113,17 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
   if(SDCardEnabled){
     if(SD.exists(filePath.c_str())){
       uidFile = SD.open(filePath.c_str());
+      fileExists = true;
     } else {
       exists = false;
+      fileExists = false;
     }
   }else if(LittleFS.exists(filePath.c_str())){
     uidFile = LittleFS.open(filePath.c_str());
+    fileExists = true;
   }else {
     exists = false;
+    fileExists = false;
   }
   if(!exists){
     Serial.println("Did not find file");
@@ -94,5 +142,5 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
       }
     }
     uidFile.close();
-    }
+  }
 }

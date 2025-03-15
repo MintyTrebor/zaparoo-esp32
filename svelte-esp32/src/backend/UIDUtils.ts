@@ -84,6 +84,7 @@ export class UIDUtils{
         LogUtils.notify("UID Control Record Saved");
     }
 
+    
     static processUIDFileJson(fileData: UIDFileJson, currUID: string){
         this.currentScannedUID = currUID;
         let currData: UIDFileJson = fileData;
@@ -101,7 +102,22 @@ export class UIDUtils{
             UIDstr: this.currentScannedUID,
             fileJson: fileData
         }
-        newCMD.data.fileJson = fileData;
+        EspUtils.sendMessage(newCMD);
+        LogUtils.notify("UID Control File Saved");
+    }
+
+    static partialUpdUIDFileJson(currUID: string, aLaunchP: string | null, aRemoveP: string | null, launchImgP: string | null){
+        let newCMD = this.getBlankESPMsg();
+        newCMD.cmd = "partialUpdUidFileJson";
+        newCMD.data = {
+            UIDstr: currUID,
+            fileJson: {
+                launchAudio: aLaunchP,
+                removeAudio: aRemoveP,
+                launchImg: launchImgP,
+                launchImgMenuID: null
+            }
+        }
         EspUtils.sendMessage(newCMD);
         LogUtils.notify("UID Control File Saved");
     }

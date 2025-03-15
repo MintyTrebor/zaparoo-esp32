@@ -353,7 +353,7 @@ export class ZapUtils{
         this.writeResultState.set(tmpWRS);        
     }
 
-    static doWriteZapScript(currUID: string, launchPath: string, aLaunchP: string | null, aRemoveP: string | null){
+    static doWriteZapScript(currUID: string, launchPath: string, aLaunchP: string | null, aRemoveP: string | null, launchImgP: string | null){
         let newUUID = uuidv4();
         if(!aLaunchP){aLaunchP = ""};
         if(!aRemoveP){aRemoveP = ""};
@@ -392,11 +392,7 @@ export class ZapUtils{
         }
         //console.log("wscmd: ", wscmd)
         this.zapSvsSocket.send(JSON.stringify(wscmd));
-        // let tmpUIDRec = UIDUtils.getBlank();
-        // tmpUIDRec.UID = currUID;
-        // tmpUIDRec.launchAudio = aLaunchP;
-        // tmpUIDRec.removeAudio = aRemoveP;
-        // UIDUtils.updateUIDRecord(tmpUIDRec);
+        UIDUtils.partialUpdUIDFileJson(currUID, aLaunchP, aRemoveP, launchImgP);
         UIDUtils.setUIDMode(false); 
                
     }

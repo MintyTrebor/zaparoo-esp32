@@ -50,35 +50,35 @@ void ScreenManager::dispDefaultImg(const char *imgPath){
 }
 
 void ScreenManager::dispAPConn(){
-  bool decoded = JpegDec.decodeArray(ZapConnToAP_jpg, 23084);
+  bool decoded = JpegDec.decodeArray(ZapConnToAP_jpg, ZapConnToAP_jpg_len);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
 void ScreenManager::dispWiFiConn(){
-  bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, 18631);
+  bool decoded = JpegDec.decodeArray(ZapConnToWifi_jpg, ZapConnToWifi_jpg_len);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
 void ScreenManager::dispGotoSleep(){
-  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, 24069);
+  bool decoded = JpegDec.decodeArray(ZapGoToSleep_jpg, ZapGoToSleep_jpg_len);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
 void ScreenManager::dispPowerOff(){
-  bool decoded = JpegDec.decodeArray(ZapPowerOff_jpg, 20542);
+  bool decoded = JpegDec.decodeArray(ZapPowerOff_jpg, ZapPowerOff_jpg_len);
   if(decoded) {
     jpegRender(0, 0);
   }
 }
 
 void ScreenManager::dispSetVolume(){
-  bool decoded = JpegDec.decodeArray(ZapSetVolume_jpg, 21739);
+  bool decoded = JpegDec.decodeArray(ZapSetVolume_jpg, ZapSetVolume_jpg_len);
   if(decoded) {
     jpegRender(0, 0);
   }

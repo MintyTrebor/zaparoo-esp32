@@ -16,6 +16,7 @@ class UIDDataManager {
     void init(bool sdEnabled);
     void createUidDataDirectory();
     void updateUidFileJson(const char* UID, JsonDocument fileDataJson);
-    void getUidFileJson(const char* UID, JsonDocument& fileDataJson);
+    void getUidFileJson(const char* UID, JsonDocument& fileDataJson, bool& fileExists);
+    void partialUpdUidFileJson(const char* UID, JsonDocument updateDataJson);
     
 };

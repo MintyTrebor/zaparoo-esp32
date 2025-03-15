@@ -159,7 +159,7 @@
     if(audLaunchP){audLaunchP = CommonUtils.validateAudioPath(audLaunchP)};
     if(audRemoveP){audRemoveP = CommonUtils.validateAudioPath(audRemoveP)};
     if(picLaunchP){picLaunchP = CommonUtils.validateAudioPath(picLaunchP)};
-    ZapUtils.doWriteZapScript(lastUIDVal, selectedGame, audLaunchP, audRemoveP);
+    ZapUtils.doWriteZapScript(lastUIDVal, selectedGame, audLaunchP, audRemoveP, picLaunchP);
     dialogScriptStart.close("true");
     UIDUtils.setUIDMode(false);
   }

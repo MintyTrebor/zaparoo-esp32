@@ -59,6 +59,8 @@ export interface ConfigData {
 export interface UIDFileJson {
   launchAudio: string;
   removeAudio: string;
+  launchImg: string;
+  launchImgMenuID: number | null;
   menus: Array<menu>;
 }
 
