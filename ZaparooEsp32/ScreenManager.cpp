@@ -20,7 +20,7 @@ void ScreenManager::screenSleep(){
 }
 
 void ScreenManager::screenWake(){
-
+  tftScr.sleep(false);
 }
 
 void ScreenManager::setNowPlayingPath(const char *nowPlayPath){

@@ -493,9 +493,14 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
     if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
       const char* imgToShow = obj->getLaunchJPEG();
       if (imgToShow || strlen(imgToShow) > 0) {
-        screenManager->dispJpgImg(imgToShow);
         screenManager->setNowPlayingPath(imgToShow);
+      }else {
+        screenManager->setNowPlayingPath("");
       }
+      screenManager->dispNowPlaying();
+    }else if(deviceType == "Lilygo"){
+      screenManager->setNowPlayingPath("");
+      screenManager->dispNowPlaying();
     }
 #endif
     if (buzzOnDetect) {
