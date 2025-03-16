@@ -25,15 +25,26 @@ void UIDDataManager::getUidFileDefaultJson(JsonDocument& fdJson){
   blankJson["removeAudio"] = "";
   blankJson["launchImg"] = "";
   blankJson["launchImgMenuID"] = 0;
-  blankJson["menus"][0]["menuID"] = 0;
-  blankJson["menus"][0]["menuItems"][0]["itemID"] = 0;
-  blankJson["menus"][0]["menuItems"][0]["itemImage"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemAudio"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemText"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionType"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionData"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionAudio"] = "";
+  blankJson.createNestedArray("menus");
+  fdJson = blankJson;
+}
+
+void UIDDataManager::getUidFileMenuJson(JsonDocument& fdJson){
+  JsonDocument blankJson;
+  blankJson["menuID"] = 0;
+  blankJson.createNestedArray("menuItems");
+  fdJson = blankJson;
+}
+
+void UIDDataManager::getUidFileMenuItemJson(JsonDocument& fdJson){
+  JsonDocument blankJson;
+  blankJson["itemImage"] = "";
+  blankJson["itemAudio"] = "";
+  blankJson["itemText"] = "";
+  blankJson["itemTextColour"] = "";
+  blankJson["itemActionType"] = "";
+  blankJson["itemActionData"] = "";
+  blankJson["itemActionAudio"] = "";
   fdJson = blankJson;
 }
 
@@ -128,9 +139,10 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
   if(!exists){
     Serial.println("Did not find file");
     //return empty data set
-    JsonDocument blankJson;
+    JsonDocument blankJson;  
     getUidFileDefaultJson(blankJson);
     loadedDataJson = blankJson;
+    currUIDJson = blankJson;
     return;
   }else {
     Serial.println("Found file");
@@ -138,6 +150,7 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
       DeserializationError error = deserializeJson(loadedDataJson, uidFile);
       if(!error){
         uidFile.close();
+        currUIDJson = loadedDataJson;
         return;
       }
     }

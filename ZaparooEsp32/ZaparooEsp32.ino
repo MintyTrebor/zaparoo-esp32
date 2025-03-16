@@ -620,7 +620,8 @@ void setup() {
   scrnMan.dispDefaultImg("");
   delay(1000);
   feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan);
+  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan, &UidDM);
+  inpMan.setCurrMenu(9999);
   pinMode(ENCODER_KEY, INPUT);  
   //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
   rotaryButton.setDebounceTime(100);

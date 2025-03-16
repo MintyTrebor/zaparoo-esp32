@@ -4,17 +4,19 @@
 
 #define BUTTON_PIN_BITMASK(GPIO) (1ULL << GPIO)
 
+
 InputManager::InputManager() {
 }
 
 InputManager::~InputManager() {
 }
 
-void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan){
+void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan, UIDDataManager* UIDDMan){
   screenManager = scrnMgr;
   encoder = encdr;
   feedbackManager = fbMan;
   powerManager = pwrMan;
+  uidDataMan = UIDDMan;
 }
 
 void InputManager:: getMainMenu(JsonDocument& menuJson){
@@ -39,85 +41,136 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
   blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doDeepSleep";
   blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
   //itemID 3 = Power Off
-  blankJson["menus"][0]["menuItems"][1]["itemID"] = 3;
-  blankJson["menus"][0]["menuItems"][1]["itemImage"] = "dispPowerOff";
-  blankJson["menus"][0]["menuItems"][1]["itemAudio"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemText"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemActionType"] = "internal";
-  blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doShutdown";
-  blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
+  blankJson["menus"][0]["menuItems"][2]["itemID"] = 3;
+  blankJson["menus"][0]["menuItems"][2]["itemImage"] = "dispPowerOff";
+  blankJson["menus"][0]["menuItems"][2]["itemAudio"] = "";
+  blankJson["menus"][0]["menuItems"][2]["itemText"] = "";
+  blankJson["menus"][0]["menuItems"][2]["itemTextColour"] = "";
+  blankJson["menus"][0]["menuItems"][2]["itemActionType"] = "internal";
+  blankJson["menus"][0]["menuItems"][2]["itemActionData"] = "doShutdown";
+  blankJson["menus"][0]["menuItems"][2]["itemActionAudio"] = "";
   menuJson = blankJson;
 }
 
-void InputManager::doRotaryButton(){
-  if(lastScrnPos == 0){
-    Serial.println("Do Sleep Action");
-    doDeepSleep();
+void InputManager::setCurrMenu(int menuID){
+  Serial.println("SettingCurrMenu To: " + String(menuID));
+  JsonDocument tmpJson;
+  if(menuID == 0){
+    currMenuItemID = 9999;
+  }else {
+    currMenuItemID = menuID;
   }
-  if(lastScrnPos == 1){
-    Serial.println("Do Shutdown Action");
-    powerManager->doShutdown();
+  if(currMenuItemID = 9999){
+    getMainMenu(tmpJson);
+  }else {    
+    getMenu(menuID, tmpJson);
   }
-  if(lastScrnPos == 2){
-    Serial.println("Do Set Volume Action");
-  }
-  if(lastScrnPos == 3){
-    //Serial.println("Do 2Player Start Action");
+  currMenuJson = tmpJson["menus"][0];
+  currMenuItemCount = currMenuJson["menuItems"].size();
+  if(currMenuItemCount > 0){currMenuItemCount--}
+  String tmpStr = "";
+  serializeJson(currMenuJson, tmpStr);
+  Serial.println("currMenuJson: " + tmpStr);
+  Serial.println("currMenuItemCount: " + String(currMenuItemCount));
+  currMenuItemPos = 0;
+}
+
+void InputManager::getMenu(int menuID, JsonDocument& menuJson){
+  Serial.println("GetMenu");
+  JsonDocument tmpJson;
+  tmpJson = uidDataMan->currUIDJson;
+  if(tmpJson["menus"].is<JsonArray>() && !tmpJson["menus"].isNull()){ 
+    for (JsonObject menu : tmpJson["menus"].as<JsonArray>()) {
+        if (menu["menuID"] == menuID) {
+            Serial.println("Found Menu");
+            menuJson = menu;
+            return;
+        }
+    }
+  }else{
+    //should not happen but just in case!
+    getMainMenu(tmpJson);
+    menuJson = tmpJson;
   }
 }
+
+void InputManager::doRotaryButton(){
+  Serial.println("doRotaryButton");
+  String tmpActionType = currMenuItemJson["itemActionType"].as<String>();
+  String tmpActionData = currMenuItemJson["itemActionData"].as<String>();
+  const char* tmpActionAudio = currMenuItemJson["itemActionAudio"].as<String>().c_str();
+
+  //do default menu items check
+  if(tmpActionType == "internal"){
+    Serial.println("Do Internal");
+    if(tmpActionData == "doDeepSleep"){
+      doDeepSleep();
+    }
+    if(tmpActionData == "doShutdown"){
+      powerManager->doShutdown();
+    }
+  }else if(tmpActionType == "menu"){
+    
+  }else if(tmpActionType == "launchGame"){
+    
+  }else if(tmpActionType == "launchScript"){
+    
+  }else {
+    Serial.println("Failed to find action");
+  }
+
+}
+
 void InputManager::doRotaryTurn(int currDir){
   int currRotPos = encoder->getPosition();
   if(lastRotationPos < currRotPos){
-    nextRotation();
+    Serial.println("Rotate Next");
+    if(currMenuItemPos == currMenuItemCount){
+      currMenuItemPos = 0;
+    }else {
+      currMenuItemPos++;
+    }
     lastRotationPos = currRotPos;
     encoder->tick();
   }else if(lastRotationPos > currRotPos){
-    previousRotation();
+    Serial.println("Rotate Prev");
+    if(currMenuItemPos == 0){
+      currMenuItemPos = currMenuItemCount;
+    }else {
+      currMenuItemPos--;
+    }    
     lastRotationPos = currRotPos;
     encoder->tick();
   }else{
     encoder->tick();
   }
-  // Serial.println("Position: " + String(currRotPos));
-  // Serial.println("Direction: " + String(currDir));
+  Serial.println("currMenuItemPos: " + String(currMenuItemPos));
+  doCurrMenuItem();
 }
 
-void InputManager::nextRotation(){
-  if(lastScrnPos == 2){
-    lastScrnPos = 0;
-  } 
-  else {
-    lastScrnPos++;
-  }
-  if(lastScrnPos == 0){
-    screenManager->dispGotoSleep();
-  }
-  if(lastScrnPos == 1){
-    screenManager->dispPowerOff();
-  }
-  if(lastScrnPos == 2){
+void InputManager::doCurrMenuItem(){
+  Serial.println("doCurrMenuItem");
+  currMenuItemJson = currMenuJson["menuItems"][currMenuItemPos];
+  String tmpStr = "";
+  serializeJson(currMenuItemJson, tmpStr);
+  Serial.println("currMenuItemJson: " + tmpStr);
+  String tmpImgPath = currMenuItemJson["itemImage"].as<String>();
+  //do default menu items check
+  if(tmpImgPath == "dispNowPlaying"){
+    Serial.println("show NowPlaying");
     screenManager->dispNowPlaying();
+  }else if(tmpImgPath == "dispPowerOff"){
+    Serial.println("show poweroff");
+    screenManager->dispPowerOff();
+  }else if(tmpImgPath == "dispGotoSleep"){
+    Serial.println("show pwr off");
+    screenManager->dispGotoSleep();
+  }else {
+    Serial.println("show other");
+    screenManager->dispJpgImg(tmpImgPath.c_str());
   }
 }
 
-void InputManager::previousRotation(){
-  if(lastScrnPos == 0){
-    lastScrnPos = 2;
-  } 
-  else {
-    lastScrnPos--;
-  }
-  if(lastScrnPos == 0){
-    screenManager->dispGotoSleep();
-  }
-  if(lastScrnPos == 1){
-    screenManager->dispPowerOff();
-  }
-  if(lastScrnPos == 2){
-    screenManager->dispNowPlaying();
-  }
-}
 
 void InputManager::doDeepSleep(){
   screenManager->screenSleep();

@@ -9,10 +9,12 @@ class UIDDataManager {
     bool SDCardEnabled;
     void createNewUidFile();
     void getUidFileDefaultJson(JsonDocument& fileDataJson);
-    
+    void getUidFileMenuJson(JsonDocument& fdJson);
+    void getUidFileMenuItemJson(JsonDocument& fdJson);
   public:    
     UIDDataManager();
     ~UIDDataManager();
+    JsonDocument currUIDJson;
     void init(bool sdEnabled);
     void createUidDataDirectory();
     void updateUidFileJson(const char* UID, JsonDocument fileDataJson);

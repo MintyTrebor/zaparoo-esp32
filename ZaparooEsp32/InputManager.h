@@ -4,6 +4,7 @@
 #include "ScreenManager.h"
 #include "FeedbackManager.h"
 #include "PowerManager.h"
+#include "UIDDataManager.h"
 
 class InputManager {
   private:
@@ -11,20 +12,23 @@ class InputManager {
     RotaryEncoder* encoder = nullptr;
     FeedbackManager* feedbackManager;
     PowerManager* powerManager;
-    JsonDocument mJson;
+    UIDDataManager* uidDataMan;
+    JsonDocument currMenuJson;
+    JsonDocument currMenuItemJson;
     int currMenuItemCount = 0;
     int currMenuItemID = 0;
     int currMenuItemPos = 0;
     int lastRotationPos = 0;
     int lastScrnPos = 2;
     void getMainMenu(JsonDocument& menuJson);
-    void nextRotation();
-    void previousRotation();
+    void getMenu(int menuID, JsonDocument& menuJson);
+    void doCurrMenuItem();
   public:    
     InputManager();
     ~InputManager();    
-    void init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan);
+    void init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan, UIDDataManager* UIDDMan);
     void doRotaryButton();
     void doRotaryTurn(int currDir);
     void doDeepSleep();
+    void setCurrMenu(int menuID);
 };
