@@ -16,12 +16,12 @@ class InputManager {
     JsonDocument currMenuJson;
     JsonDocument currMenuItemJson;
     int currMenuItemCount = 0;
-    int currMenuItemID = 0;
+    String currMenuItemID = "";
     int currMenuItemPos = 0;
     int lastRotationPos = 0;
     int lastScrnPos = 2;
     void getMainMenu(JsonDocument& menuJson);
-    void getMenu(int menuID, JsonDocument& menuJson);
+    void getMenu(String menuID, JsonDocument& menuJson);
     void doCurrMenuItem();
   public:    
     InputManager();
@@ -30,5 +30,5 @@ class InputManager {
     void doRotaryButton();
     void doRotaryTurn(int currDir);
     void doDeepSleep();
-    void setCurrMenu(int menuID);
+    void setCurrMenu(String menuID);
 };

@@ -447,7 +447,7 @@ void FeedbackManager::successActions(ZaparooToken* obj) {
     launchLedOff(0, 0);
 }
 
-void FeedbackManager::setUidAudioMappings(ZaparooToken* obj) {
+void FeedbackManager::setUidMappings(ZaparooToken* obj) {
     if (!audioEnabled) return;
     JsonDocument uidFile;
     bool isExistingFile = false;

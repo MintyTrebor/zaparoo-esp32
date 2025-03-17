@@ -1,12 +1,26 @@
+<style>
+    .menus-div{
+        max-height: 25vh;
+        min-height: 25vh;
+    }
+    .table-responsive {
+        max-height: 23vh;
+    }
+</style>
 <script lang="ts">
     import { UIDUtils } from "../backend/UIDUtils";
-    import type { UIDFileJson, ConfigData } from "../types/ConfigData";
+    import type { UIDFileJson, ConfigData, menu, menuItem } from "../types/ConfigData";
     import { CommonUtils } from "../backend/CommonUtils";
     import { onDestroy, onMount } from 'svelte';
     import { EspUtils } from "../backend/EspUtils";
-    let config: ConfigData = EspUtils.getBlank();
-    let uidFJson: UIDFileJson = UIDUtils.getBlankFileJson();
-    let currUID: string;
+    import {v4 as uuidv4} from 'uuid';
+    import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+    import { faEllipsis, faSearch, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+    let config: ConfigData = $state(EspUtils.getBlank());
+    let uidFJson: UIDFileJson = $state(UIDUtils.getBlankFileJson());
+    let currUID: string = $state("");
+    let currSelMenuID: string = $state("");
+    let currSelMenu: menu = $state(UIDUtils.getNewMenu());
     UIDUtils.scannedUIDFileJson().subscribe(value=> updateScan(value));
     EspUtils.config().subscribe(value=> config = value);
     const handleSubmit = (event: Event) => {
@@ -15,6 +29,7 @@
         updRec.launchAudio = CommonUtils.validateAudioPath(uidFJson.launchAudio);
         updRec.removeAudio = CommonUtils.validateAudioPath(uidFJson.removeAudio);
         updRec.launchImg = CommonUtils.validateAudioPath(uidFJson.launchImg);
+        updRec.launchImgMenuID = uidFJson.launchImgMenuID;
         updRec.menus = uidFJson.menus;
         UIDUtils.saveUIDFileJson(updRec);
     }
@@ -28,32 +43,226 @@
         uidFJson = data;
         currUID = UIDUtils.currScannedUID();
     }
+    function setCurrSelMenuID(menuID: string){
+        currSelMenuID = menuID;
+        currSelMenu = getCurrSelMenu();
+    } 
+    function getCurrSelMenu(): menu {
+        if(currSelMenuID.length > 0){
+            let tmpArr = uidFJson.menus.filter((item: {menuID: string}) => (item.menuID == currSelMenuID));
+            if(tmpArr.length > 0){
+                return tmpArr[0];
+            }else{
+                return UIDUtils.getNewMenu();
+            }
+        }else{
+            return UIDUtils.getNewMenu();
+        }
+    }
+
+    function addNewMenu(){
+        let tmpMenu: menu = UIDUtils.getNewMenu();
+        tmpMenu.menuID = uuidv4();
+        tmpMenu.exitMenuActionAudio = "";
+        tmpMenu.exitMenuImg = "";
+        tmpMenu.exitMenuText = "";
+        tmpMenu.exitMenuTextColour = "";
+        tmpMenu.menuName = "";
+        tmpMenu.menuItems = [];
+        uidFJson.menus.push(tmpMenu);
+    }
+    function delCurrSelMenuID(delMenuID: string, delMenuIdx: number){
+        if(uidFJson.menus[delMenuIdx].menuID == delMenuID){
+            uidFJson.menus.splice(delMenuIdx, 1);
+        }
+    }
+    function delCurrSelMenuItemID(delItemID: string, delItemIdx: number){
+        if(currSelMenu.menuItems[delItemIdx].itemID == delItemID){
+            currSelMenu.menuItems.splice(delItemIdx, 1);
+        }
+    }
+    function addNewMenuItem(){
+        let tmpItem: menuItem = UIDUtils.getNewMenuItem();
+        tmpItem.itemID = uuidv4();
+        tmpItem.itemActionAudio = "";
+        tmpItem.itemActionData = "";
+        tmpItem.itemActionType = "";
+        tmpItem.itemAudio = "";
+        tmpItem.itemImage = "";
+        tmpItem.itemText = "";
+        tmpItem.itemTextColour = "";
+        currSelMenu.menuItems.push(tmpItem);
+    }
 </script>
-<div class="text-center mt-2">
-    <h4>Scan an item to update audio controls</h4>
+<div class="text-center">
+    <h4>Scan a Token to update</h4>
 </div>
-<form on:submit={handleSubmit} class="row g-1 mt-5">
-    <div class="col-12">
-        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
-            <div class="form-floating col-3">
-                <input type="text" class="form-control" id="tokenUID" placeholder="/" bind:value={currUID}/>
-                <label for="tokenUID">Token UID</label>
+<form onsubmit={handleSubmit} class="row g-1 mt-7">
+    {#if currUID}
+        <div class="col-12">
+            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+                <div class="form-floating col-2">
+                    <input type="text" class="form-control" id="tokenUID" placeholder="/" bind:value={currUID}/>
+                    <label for="tokenUID">Token UID</label>
+                </div>
+                <div class="form-floating col-2">
+                    <input type="text" class="form-control" id="LaunPath" placeholder="/" bind:value={uidFJson.launchAudio}/>
+                    <label for="LaunPath">Launch Audio File</label>
+                </div>
+                <div class="form-floating col-2">
+                    <input type="text" class="form-control" id="RemPath" placeholder="/" bind:value={uidFJson.removeAudio}/>
+                    <label for="RemPath">Remove Audio File</label>
+                </div>
+                {#if config.deviceType == "Lilygo"}
+                <div class="form-floating col-2">
+                    <input type="text" class="form-control" id="aRemoveP" placeholder="/" bind:value={uidFJson.launchImg}/>
+                    <label for="aRemoveP">JPEG Path</label>
+                </div>
+                    {#if uidFJson.menus.length > 0}
+                    <div class="form-floating col-2">
+                        <select class="form-select" id="selLaunchMenu" bind:value={uidFJson.launchImgMenuID}>
+                            <option value="">No Action</option>
+                            {#each uidFJson.menus as {menuID, menuName}}
+                            <option value={menuID}>{menuName}</option>
+                            {/each}
+                        </select>
+                        <label for="selLaunchMenu">Menu ID</label>
+                    </div>
+                    {/if}
+                {/if}
             </div>
-            <div class="form-floating col-3">
-                <input type="text" class="form-control" id="LaunPath" placeholder="/" bind:value={uidFJson.launchAudio}/>
-                <label for="LaunPath">Launch Audio File</label>
+        </div>
+        {#if config.deviceType == "Lilygo"}
+            <div class="col-12 menus-div container mt-4">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover table-dark mt-0">
+                        <thead style="position: sticky;top: 0; padding: 1px !important;">
+                            <tr>
+                                <th scope="col" class="pt-0">
+                                    <button type="button" class="btn btn-primary mt-4" onclick={addNewMenu} data-bs-toggle="tooltip" title="Add New Menu" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faSquarePlus}/>
+                                    </button>
+                                </th>
+                                <th scope="col" class="pt-0">Menu Name</th>
+                                <th scope="col" class="pt-0">Exit Menu Image Path</th>
+                                <th scope="col" class="pt-0">Exit Menu Audio Path</th>
+                                <th scope="col" class="pt-0">Exit Menu Destination</th>
+                                <th scope="col" class="pt-0"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each uidFJson.menus as menu, i}
+                            <tr>
+                                <td>
+                                    <button type="button" class="btn btn-primary" onclick={() => delCurrSelMenuID(menu.menuID, i)} data-bs-toggle="tooltip" title="Delete This Menu" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faTrash}/>
+                                    </button>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" id="menuName" bind:value={menu.menuName}/>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" id="menuImg" placeholder="/" bind:value={menu.exitMenuImg}/>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" id="menuActAudio" placeholder="/" bind:value={menu.exitMenuActionAudio}/>
+                                </td>
+                                <td>
+                                    <select class="form-select" id="selExitMenu" bind:value={menu.exitMenuID}>
+                                        <option value="9999">Main Menu</option>
+                                        {#each uidFJson.menus as menuList}
+                                        <option value={menuList.menuID}>{menuList.menuName}</option>
+                                        {/each}
+                                    </select>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" onclick={() => setCurrSelMenuID(menu.menuID)} data-bs-toggle="tooltip" title="Edit Menu Items" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faEllipsis}/>
+                                    </button>
+                                </td>
+                            </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="form-floating col-3">
-                <input type="text" class="form-control" id="RemPath" placeholder="/" bind:value={uidFJson.removeAudio}/>
-                <label for="RemPath">Remove Audio File</label>
-            </div>
-            {#if config.deviceType == "Lilygo"}
-            <div class="form-floating col-3">
-                <input type="text" class="form-control" id="aRemoveP" placeholder="/" bind:value={uidFJson.launchImg}/>
-                <label for="aRemoveP">JPEG Path</label>
+            {#if currSelMenuID.length > 0}
+            <div class="col-12 menus-div container mt-4">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover table-dark mt-0">
+                        <thead style="position: sticky;top: 0; padding: 1px !important;">
+                            <tr>
+                                <th scope="col">
+                                    <button type="button" class="btn btn-primary mt-4" onclick={addNewMenuItem} data-bs-toggle="tooltip" title="Add Menu Items" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faSquarePlus}/>
+                                    </button>
+                                </th>
+                                <th scope="col">Menu Item Image Path</th>
+                                <th scope="col">On Click Audio Path</th>
+                                <th scope="col">Item Action Type</th>
+                                <th scope="col">Item Action Data</th>
+                                <th scope="col">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each currSelMenu.menuItems as menuItem, i}
+                            <tr>
+                                <td>
+                                    <button type="button" class="btn btn-primary" onclick={() => delCurrSelMenuItemID(menuItem.itemID, i)} data-bs-toggle="tooltip" title="Delete This Menu Item" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faTrash}/>
+                                    </button>
+                                </td>
+                                <td><input type="text" class="form-control" id="itemImg" placeholder="/" bind:value={menuItem.itemImage}/></td>
+                                <td><input type="text" class="form-control" id="itemActAudio" placeholder="/" bind:value={menuItem.itemActionAudio}/></td>
+                                <td>
+                                    <select class="form-select" id="selItemAction" bind:value={menuItem.itemActionType}>
+                                        <option value="menu">Goto Menu</option>
+                                        <option value="launchGame">Launch Game</option>
+                                        <option value="launchScript">Launch Script</option>
+                                    </select>
+                                </td>
+                                {#if menuItem.itemActionType == "menu"}
+                                <td>
+                                    <select class="form-select" id="itmActData" bind:value={menuItem.itemActionData} data-bs-toggle="tooltip" title="Select Menu to Open" data-bs-placement="top">
+                                        <option value="9999">Main Menu</option>
+                                        {#each uidFJson.menus as {menuID, menuName}}
+                                        <option value={menuID}>{menuName}</option>
+                                        {/each}
+                                    </select>
+                                </td>
+                                <td>&nbsp;&nbsp;&nbsp;</td>
+                                {/if}
+                                {#if menuItem.itemActionType == "launchGame"}
+                                <td>
+                                    <input type="text" class="form-control" id="itmActData" bind:value={menuItem.itemActionData} data-bs-toggle="tooltip" title="Enter Game launch Path" data-bs-placement="top"/>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="tooltip" title="Search For Game" data-bs-placement="top">
+                                        <FontAwesomeIcon icon={faSearch}/>
+                                    </button>
+                                </td>
+                                {/if}
+                                {#if menuItem.itemActionType == "launchScript"}
+                                <td>
+                                    <input type="text" class="form-control" id="itmActData" bind:value={menuItem.itemActionData} data-bs-toggle="tooltip" title="Enter Name of Script" data-bs-placement="top"/>
+                                </td>
+                                <td>&nbsp;&nbsp;&nbsp;</td>
+                                {/if}
+                                {#if menuItem.itemActionType == ""}
+                                <td>
+                                </td>
+                                <td>&nbsp;&nbsp;&nbsp;</td>
+                                {/if}
+                            </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
             </div>
             {/if}
+        {/if}
+        <div class="text-center mb-2 col-12">
+            <button type="submit" class="btn btn-primary mt-3">Save</button>
         </div>
-    </div>
-    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    {/if}
 </form>

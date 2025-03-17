@@ -21,9 +21,9 @@ void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackMa
 
 void InputManager:: getMainMenu(JsonDocument& menuJson){
   JsonDocument blankJson;
-  blankJson["menus"][0]["menuID"] = 9999;
+  blankJson["menus"][0]["menuID"] = "9999";
   //itemID 1 = Now Playing
-  blankJson["menus"][0]["menuItems"][0]["itemID"] = 1;
+  blankJson["menus"][0]["menuItems"][0]["itemID"] = "1";
   blankJson["menus"][0]["menuItems"][0]["itemImage"] = "dispNowPlaying";
   blankJson["menus"][0]["menuItems"][0]["itemAudio"] = "";
   blankJson["menus"][0]["menuItems"][0]["itemText"] = "";
@@ -32,7 +32,7 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
   blankJson["menus"][0]["menuItems"][0]["itemActionData"] = "";
   blankJson["menus"][0]["menuItems"][0]["itemActionAudio"] = "";
   //itemID 2 = Sleep
-  blankJson["menus"][0]["menuItems"][1]["itemID"] = 2;
+  blankJson["menus"][0]["menuItems"][1]["itemID"] = "2";
   blankJson["menus"][0]["menuItems"][1]["itemImage"] = "dispGotoSleep";
   blankJson["menus"][0]["menuItems"][1]["itemAudio"] = "";
   blankJson["menus"][0]["menuItems"][1]["itemText"] = "";
@@ -41,7 +41,7 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
   blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doDeepSleep";
   blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
   //itemID 3 = Power Off
-  blankJson["menus"][0]["menuItems"][2]["itemID"] = 3;
+  blankJson["menus"][0]["menuItems"][2]["itemID"] = "3";
   blankJson["menus"][0]["menuItems"][2]["itemImage"] = "dispPowerOff";
   blankJson["menus"][0]["menuItems"][2]["itemAudio"] = "";
   blankJson["menus"][0]["menuItems"][2]["itemText"] = "";
@@ -52,22 +52,22 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
   menuJson = blankJson;
 }
 
-void InputManager::setCurrMenu(int menuID){
+void InputManager::setCurrMenu(String menuID){
   Serial.println("SettingCurrMenu To: " + String(menuID));
   JsonDocument tmpJson;
   if(menuID == 0){
-    currMenuItemID = 9999;
+    currMenuItemID = "9999";
   }else {
     currMenuItemID = menuID;
   }
-  if(currMenuItemID = 9999){
+  if(currMenuItemID = "9999"){
     getMainMenu(tmpJson);
   }else {    
     getMenu(menuID, tmpJson);
   }
   currMenuJson = tmpJson["menus"][0];
   currMenuItemCount = currMenuJson["menuItems"].size();
-  if(currMenuItemCount > 0){currMenuItemCount--}
+  if(currMenuItemCount > 0){currMenuItemCount--;}
   String tmpStr = "";
   serializeJson(currMenuJson, tmpStr);
   Serial.println("currMenuJson: " + tmpStr);
@@ -75,7 +75,7 @@ void InputManager::setCurrMenu(int menuID){
   currMenuItemPos = 0;
 }
 
-void InputManager::getMenu(int menuID, JsonDocument& menuJson){
+void InputManager::getMenu(String menuID, JsonDocument& menuJson){
   Serial.println("GetMenu");
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;

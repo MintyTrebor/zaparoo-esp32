@@ -69,7 +69,7 @@ public:
     void wifiLedOff();
     void expressError(int code);
     void successActions(ZaparooToken* obj);
-    void setUidAudioMappings(ZaparooToken* obj);
+    void setUidMappings(ZaparooToken* obj);
     int playAudio(const char* audioPath);
     void cardInsertedActions(ZaparooToken* obj);
     void cardRemovedActions(ZaparooToken* obj);

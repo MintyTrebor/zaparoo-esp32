@@ -24,20 +24,27 @@ void UIDDataManager::getUidFileDefaultJson(JsonDocument& fdJson){
   blankJson["launchAudio"] = "";
   blankJson["removeAudio"] = "";
   blankJson["launchImg"] = "";
-  blankJson["launchImgMenuID"] = 0;
+  blankJson["launchImgMenuID"] = "";
   blankJson.createNestedArray("menus");
   fdJson = blankJson;
 }
 
 void UIDDataManager::getUidFileMenuJson(JsonDocument& fdJson){
   JsonDocument blankJson;
-  blankJson["menuID"] = 0;
+  blankJson["menuID"] = "";
+  blankJson["menuName"] = "";
+  blankJson["exitMenuImg"] = "";
+  blankJson["exitMenuID"] = "";
+  blankJson["exitMenuText"] = "";
+  blankJson["exitMenuTextColour"] = "";
+  blankJson["exitMenuActionAudio"] = "";
   blankJson.createNestedArray("menuItems");
   fdJson = blankJson;
 }
 
 void UIDDataManager::getUidFileMenuItemJson(JsonDocument& fdJson){
   JsonDocument blankJson;
+  blankJson["itemID"] = "";
   blankJson["itemImage"] = "";
   blankJson["itemAudio"] = "";
   blankJson["itemText"] = "";

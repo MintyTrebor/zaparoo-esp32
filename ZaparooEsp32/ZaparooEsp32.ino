@@ -469,7 +469,7 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
 void handleSend(){
   bool sent = false;
   bool playAudioFirst = serialOnly && feedback.resetOnRemove && !uidScanMode;
-  feedback.setUidAudioMappings(token);
+  feedback.setUidMappings(token);
   if(playAudioFirst){
     feedback.successActions(token); //Play the audio before launch to support remove with simple serial
     sent = true;
@@ -621,7 +621,7 @@ void setup() {
   delay(1000);
   feedback.initScreen(&scrnMan);
   inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan, &UidDM);
-  inpMan.setCurrMenu(9999);
+  inpMan.setCurrMenu("9999");
   pinMode(ENCODER_KEY, INPUT);  
   //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
   rotaryButton.setDebounceTime(100);

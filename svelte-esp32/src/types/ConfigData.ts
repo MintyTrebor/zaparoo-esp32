@@ -60,18 +60,24 @@ export interface UIDFileJson {
   launchAudio: string;
   removeAudio: string;
   launchImg: string;
-  launchImgMenuID: number | null;
+  launchImgMenuID: string;
   menus: Array<menu>;
 }
 
 
 export interface menu {
-  menuID: number;
+  menuID: string;
+  menuName: string;
+  exitMenuImg: string;
+  exitMenuID: string;
+  exitMenuText: string;
+  exitMenuTextColour: string;
+  exitMenuActionAudio: string;
   menuItems: Array<menuItem>;
 }
 
 export interface menuItem {
-    itemID: number;
+    itemID: string;
     itemImage: string;
     itemAudio: string;
     itemText: string;
