@@ -455,7 +455,7 @@ void FeedbackManager::setUidMappings(ZaparooToken* obj) {
     if(isExistingFile){
       obj->setLaunchAudio(uidFile["launchAudio"].as<String>().c_str());
       obj->setRemoveAudio(uidFile["removeAudio"].as<String>().c_str());
-      obj->setLaunchJPEG(uidFile["launchImg"].as<String>().c_str());
+      obj->setLaunchJPEG(uidFile["launchImg"].as<String>().c_str()); 
     }
 }
 

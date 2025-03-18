@@ -470,6 +470,7 @@ void handleSend(){
   bool sent = false;
   bool playAudioFirst = serialOnly && feedback.resetOnRemove && !uidScanMode;
   feedback.setUidMappings(token);
+  inpMan.setupMenu();
   if(playAudioFirst){
     feedback.successActions(token); //Play the audio before launch to support remove with simple serial
     sent = true;
@@ -624,7 +625,7 @@ void setup() {
   inpMan.setCurrMenu("9999");
   pinMode(ENCODER_KEY, INPUT);  
   //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
-  rotaryButton.setDebounceTime(100);
+  rotaryButton.setDebounceTime(25);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
   xTaskCreatePinnedToCore(rotary, "rotary", 4096, NULL, 2, NULL,0);
@@ -718,8 +719,9 @@ void rotary(void *pvParameters) {
     if(rotaryButton.isPressed()){
       //buttonTrigger = false;
       inpMan.doRotaryButton();
+      Serial.println("Button Pressed");
     }
-    delay(50);
+    delay(10);
   }
 }
 void battery_task(void *pvParameters) {

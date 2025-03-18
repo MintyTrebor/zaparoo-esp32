@@ -15,6 +15,7 @@ class InputManager {
     UIDDataManager* uidDataMan;
     JsonDocument currMenuJson;
     JsonDocument currMenuItemJson;
+    String defSubMenuID = "";
     int currMenuItemCount = 0;
     String currMenuItemID = "";
     int currMenuItemPos = 0;
@@ -31,4 +32,5 @@ class InputManager {
     void doRotaryTurn(int currDir);
     void doDeepSleep();
     void setCurrMenu(String menuID);
+    void setupMenu();
 };

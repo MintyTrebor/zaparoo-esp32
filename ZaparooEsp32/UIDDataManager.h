@@ -10,7 +10,6 @@ class UIDDataManager {
     void createNewUidFile();
     void getUidFileDefaultJson(JsonDocument& fileDataJson);
     void getUidFileMenuJson(JsonDocument& fdJson);
-    void getUidFileMenuItemJson(JsonDocument& fdJson);
   public:    
     UIDDataManager();
     ~UIDDataManager();
@@ -20,5 +19,5 @@ class UIDDataManager {
     void updateUidFileJson(const char* UID, JsonDocument fileDataJson);
     void getUidFileJson(const char* UID, JsonDocument& fileDataJson, bool& fileExists);
     void partialUpdUidFileJson(const char* UID, JsonDocument updateDataJson);
-    
+    void getUidFileMenuItemJson(JsonDocument& fdJson);
 };

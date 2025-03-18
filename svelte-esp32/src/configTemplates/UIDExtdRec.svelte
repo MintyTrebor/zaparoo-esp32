@@ -4,7 +4,11 @@
         min-height: 25vh;
     }
     .table-responsive {
-        max-height: 23vh;
+        max-height: 25vh;
+    }
+    .srchDialog {
+        min-height: 75vh;
+        min-width: 75vw;
     }
 </style>
 <script lang="ts">
@@ -16,11 +20,15 @@
     import {v4 as uuidv4} from 'uuid';
     import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
     import { faEllipsis, faSearch, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+    import SearchDialog from './ZapSearch.svelte'
+    let srchDialog: HTMLDialogElement;
     let config: ConfigData = $state(EspUtils.getBlank());
     let uidFJson: UIDFileJson = $state(UIDUtils.getBlankFileJson());
     let currUID: string = $state("");
     let currSelMenuID: string = $state("");
     let currSelMenu: menu = $state(UIDUtils.getNewMenu());
+    let currMenuItemID: string = "";
+    let currSrchResult:string = $state("");
     UIDUtils.scannedUIDFileJson().subscribe(value=> updateScan(value));
     EspUtils.config().subscribe(value=> config = value);
     const handleSubmit = (event: Event) => {
@@ -30,6 +38,20 @@
         updRec.removeAudio = CommonUtils.validateAudioPath(uidFJson.removeAudio);
         updRec.launchImg = CommonUtils.validateAudioPath(uidFJson.launchImg);
         updRec.launchImgMenuID = uidFJson.launchImgMenuID;
+        
+        let i: any = 0;
+        for(i in uidFJson.menus){
+            uidFJson.menus[i].exitMenuImg = CommonUtils.validateAudioPath(uidFJson.menus[i].exitMenuImg);
+            uidFJson.menus[i].exitMenuActionAudio = CommonUtils.validateAudioPath(uidFJson.menus[i].exitMenuActionAudio);
+            let j: any =0;
+            for(j in uidFJson.menus[i].menuItems){
+                uidFJson.menus[i].menuItems[j].itemActionAudio = CommonUtils.validateAudioPath(uidFJson.menus[i].menuItems[j].itemActionAudio);
+                uidFJson.menus[i].menuItems[j].itemImage = CommonUtils.validateAudioPath(uidFJson.menus[i].menuItems[j].itemImage);
+                uidFJson.menus[i].menuItems[j].itemAudio = CommonUtils.validateAudioPath(uidFJson.menus[i].menuItems[j].itemAudio);
+            }
+            
+
+        }        
         updRec.menus = uidFJson.menus;
         UIDUtils.saveUIDFileJson(updRec);
     }
@@ -93,6 +115,27 @@
         tmpItem.itemTextColour = "";
         currSelMenu.menuItems.push(tmpItem);
     }
+
+    function showSrchDialog(menuItmId: string){
+        currMenuItemID = menuItmId;
+        srchDialog.showModal();
+    }
+
+    function searchReturn(srchResult: any): void{
+        currSrchResult = srchResult.selectedGame;
+        srchDialog.close("true")
+        console.log("srchres: ", currSrchResult);
+        let tmpArr = uidFJson.menus.filter((item: {menuID: string}) => (item.menuID == currSelMenuID));
+            if(tmpArr.length > 0){
+                let tmpMenu: menu = tmpArr[0];
+                let tmpMenuItems = tmpMenu.menuItems.filter((item: {itemID: string}) => (item.itemID == currMenuItemID));
+                if(tmpMenuItems.length > 0){
+                    let tmpItem: menuItem = tmpMenuItems[0];
+                    tmpItem.itemActionData = currSrchResult;
+                }
+            }
+    }
+
 </script>
 <div class="text-center">
     <h4>Scan a Token to update</h4>
@@ -133,7 +176,10 @@
             </div>
         </div>
         {#if config.deviceType == "Lilygo"}
-            <div class="col-12 menus-div container mt-4">
+            <div class="mt-3 mb-0 pb-0">
+                <h6>Custom Menus</h6>
+            </div>
+            <div class="col-12 menus-div container ma-0 pa-0">
                 <div class="table-responsive">
                     <table class="table table-sm table-hover table-dark mt-0">
                         <thead style="position: sticky;top: 0; padding: 1px !important;">
@@ -143,10 +189,10 @@
                                         <FontAwesomeIcon icon={faSquarePlus}/>
                                     </button>
                                 </th>
-                                <th scope="col" class="pt-0">Menu Name</th>
+                                <th scope="col" class="pt-0">Menu Name*</th>
                                 <th scope="col" class="pt-0">Exit Menu Image Path</th>
                                 <th scope="col" class="pt-0">Exit Menu Audio Path</th>
-                                <th scope="col" class="pt-0">Exit Menu Destination</th>
+                                <th scope="col" class="pt-0">Exit Menu Destination*</th>
                                 <th scope="col" class="pt-0"></th>
                             </tr>
                         </thead>
@@ -187,7 +233,10 @@
                 </div>
             </div>
             {#if currSelMenuID.length > 0}
-            <div class="col-12 menus-div container mt-4">
+            <div class="mt-4 pa-0">
+                <h6>Menu Items</h6>
+            </div>
+            <div class="col-12 menus-div container">
                 <div class="table-responsive">
                     <table class="table table-sm table-hover table-dark mt-0">
                         <thead style="position: sticky;top: 0; padding: 1px !important;">
@@ -197,11 +246,11 @@
                                         <FontAwesomeIcon icon={faSquarePlus}/>
                                     </button>
                                 </th>
-                                <th scope="col">Menu Item Image Path</th>
+                                <th scope="col">Menu Item Image Path*</th>
                                 <th scope="col">On Click Audio Path</th>
-                                <th scope="col">Item Action Type</th>
-                                <th scope="col">Item Action Data</th>
-                                <th scope="col">&nbsp;</th>
+                                <th scope="col">Item Action Type*</th>
+                                <th scope="col">Item Action Data*</th>
+                                <th scope="col">&nbsp;&nbsp;&nbsp;</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -237,7 +286,7 @@
                                     <input type="text" class="form-control" id="itmActData" bind:value={menuItem.itemActionData} data-bs-toggle="tooltip" title="Enter Game launch Path" data-bs-placement="top"/>
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="tooltip" title="Search For Game" data-bs-placement="top">
+                                    <button type="button" class="btn btn-primary" onclick={() => showSrchDialog(menuItem.itemID)} data-bs-toggle="tooltip" title="Search For Game" data-bs-placement="top">
                                         <FontAwesomeIcon icon={faSearch}/>
                                     </button>
                                 </td>
@@ -266,3 +315,8 @@
         </div>
     {/if}
 </form>
+<dialog bind:this={srchDialog}>
+    <div class="srchDialog">
+        <SearchDialog {searchReturn}> </SearchDialog>
+    </div>
+</dialog>

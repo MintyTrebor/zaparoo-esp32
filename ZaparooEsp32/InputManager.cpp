@@ -28,7 +28,7 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
   blankJson["menus"][0]["menuItems"][0]["itemAudio"] = "";
   blankJson["menus"][0]["menuItems"][0]["itemText"] = "";
   blankJson["menus"][0]["menuItems"][0]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionType"] = "";
+  blankJson["menus"][0]["menuItems"][0]["itemActionType"] = "menu";
   blankJson["menus"][0]["menuItems"][0]["itemActionData"] = "";
   blankJson["menus"][0]["menuItems"][0]["itemActionAudio"] = "";
   //itemID 2 = Sleep
@@ -60,20 +60,51 @@ void InputManager::setCurrMenu(String menuID){
   }else {
     currMenuItemID = menuID;
   }
-  if(currMenuItemID = "9999"){
+  if(currMenuItemID == "9999"){
     getMainMenu(tmpJson);
+    currMenuJson = tmpJson["menus"][0];
+    currMenuItemCount = currMenuJson["menuItems"].size();
   }else {    
     getMenu(menuID, tmpJson);
+    currMenuJson = tmpJson;
+    //add the exit menu into the menuitems array
+    JsonDocument exitMenuItem;
+    uidDataMan->getUidFileMenuItemJson(exitMenuItem);
+    exitMenuItem["itemID"] = "exitMenu";
+    exitMenuItem["itemImage"] = currMenuJson["exitMenuImg"];
+    exitMenuItem["itemText"] = currMenuJson["exitMenuText"];
+    exitMenuItem["itemTextColour"] = currMenuJson["exitMenuTextColour"];
+    exitMenuItem["itemActionType"] = "menu";
+    exitMenuItem["itemActionData"] = currMenuJson["exitMenuID"];
+    exitMenuItem["itemActionAudio"] = currMenuJson["exitMenuActionAudio"];
+    currMenuJson["menuItems"].add(exitMenuItem);
+    currMenuItemCount = currMenuJson["menuItems"].size();
   }
-  currMenuJson = tmpJson["menus"][0];
-  currMenuItemCount = currMenuJson["menuItems"].size();
+  
+  
   if(currMenuItemCount > 0){currMenuItemCount--;}
   String tmpStr = "";
+  serializeJson(tmpJson, tmpStr);
+  Serial.println("tmpJson: " + tmpStr);
+  tmpStr = "";
   serializeJson(currMenuJson, tmpStr);
   Serial.println("currMenuJson: " + tmpStr);
   Serial.println("currMenuItemCount: " + String(currMenuItemCount));
   currMenuItemPos = 0;
 }
+
+void InputManager::setupMenu(){
+  JsonDocument tmpJson;
+  tmpJson = uidDataMan->currUIDJson;
+  //first set the default sub menu id 
+  if(tmpJson["launchImgMenuID"].as<String>().length() > 0){
+    defSubMenuID = tmpJson["launchImgMenuID"].as<String>();
+    Serial.println("Setting Def Sub Menu ID to: " + defSubMenuID);
+    currMenuItemPos == 0;
+    doCurrMenuItem();
+  }
+  
+};
 
 void InputManager::getMenu(String menuID, JsonDocument& menuJson){
   Serial.println("GetMenu");
@@ -84,6 +115,9 @@ void InputManager::getMenu(String menuID, JsonDocument& menuJson){
         if (menu["menuID"] == menuID) {
             Serial.println("Found Menu");
             menuJson = menu;
+            String tmpStr = "";
+            serializeJson(menu, tmpStr);
+            Serial.println("getmenu() menu json: " + tmpStr);
             return;
         }
     }
@@ -98,10 +132,16 @@ void InputManager::doRotaryButton(){
   Serial.println("doRotaryButton");
   String tmpActionType = currMenuItemJson["itemActionType"].as<String>();
   String tmpActionData = currMenuItemJson["itemActionData"].as<String>();
+  String tmpMenuID = currMenuItemJson["itemID"].as<String>();
   const char* tmpActionAudio = currMenuItemJson["itemActionAudio"].as<String>().c_str();
 
   //do default menu items check
-  if(tmpActionType == "internal"){
+  if(tmpMenuID == "1" && defSubMenuID.length() > 0){
+    Serial.println("Opening default sub menu");
+    setCurrMenu(defSubMenuID);
+    currMenuItemPos = 0;
+    doCurrMenuItem();
+  }else if(tmpActionType == "internal"){
     Serial.println("Do Internal");
     if(tmpActionData == "doDeepSleep"){
       doDeepSleep();
@@ -109,12 +149,14 @@ void InputManager::doRotaryButton(){
     if(tmpActionData == "doShutdown"){
       powerManager->doShutdown();
     }
-  }else if(tmpActionType == "menu"){
-    
-  }else if(tmpActionType == "launchGame"){
-    
-  }else if(tmpActionType == "launchScript"){
-    
+  }else if(tmpActionType == "menu" && tmpActionData.length() > 0){
+    setCurrMenu(tmpActionData);
+    currMenuItemPos = 0;
+    doCurrMenuItem();
+  }else if(tmpActionType == "launchGame" && tmpActionData.length() > 0){
+    Serial.println("Launch Game From Menu Click");
+  }else if(tmpActionType == "launchScript" && tmpActionData.length() > 0){
+    Serial.println("Launch Script From Menu Click");
   }else {
     Serial.println("Failed to find action");
   }
