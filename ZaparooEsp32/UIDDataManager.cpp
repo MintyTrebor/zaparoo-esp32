@@ -85,11 +85,11 @@ void UIDDataManager::partialUpdUidFileJson(const char* UID, JsonDocument updateD
     exists = false;
   }
   if(!exists){
-    Serial.println("Did not find file");
+    Serial.println("partialUpdUidFileJson() Did not find UID file");
     //get empty data set    
     getUidFileDefaultJson(blankJson);    
   }else {
-    Serial.println("Found file");
+    Serial.println("partialUpdUidFileJson() Found UID file");
     while (uidFile.available()) { 
       DeserializationError error = deserializeJson(blankJson, uidFile);        
     }
@@ -144,7 +144,7 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
     fileExists = false;
   }
   if(!exists){
-    Serial.println("Did not find file");
+    Serial.println("getUidFileJson() Did not UID find file");
     //return empty data set
     JsonDocument blankJson;  
     getUidFileDefaultJson(blankJson);
@@ -152,7 +152,7 @@ void UIDDataManager::getUidFileJson(const char* UID, JsonDocument& loadedDataJso
     currUIDJson = blankJson;
     return;
   }else {
-    Serial.println("Found file");
+    Serial.println("getUidFileJson() Found UID file");
     while (uidFile.available()) { 
       DeserializationError error = deserializeJson(loadedDataJson, uidFile);
       if(!error){

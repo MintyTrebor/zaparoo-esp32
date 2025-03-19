@@ -2,6 +2,8 @@
 #include "ZaparooEsp32.hpp"
 #include "InputManager.h"
 
+//String ZAP_URL = "ws://<replace>:7497" + String(ZaparooLaunchApi::wsPath);
+
 #define BUTTON_PIN_BITMASK(GPIO) (1ULL << GPIO)
 
 
@@ -11,12 +13,16 @@ InputManager::InputManager() {
 InputManager::~InputManager() {
 }
 
-void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan, UIDDataManager* UIDDMan){
+void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackManager* fbMan, PowerManager* pwrMan, UIDDataManager* UIDDMan, ZaparooLaunchApi* ZapCli, bool isSerial, String stmIP, String zpIP){
   screenManager = scrnMgr;
   encoder = encdr;
   feedbackManager = fbMan;
   powerManager = pwrMan;
   uidDataMan = UIDDMan;
+  ZapLaunchClient = ZapCli;
+  isSerialOnly = isSerial;
+  IPSteam = stmIP;
+  IPZap = zpIP;
 }
 
 void InputManager:: getMainMenu(JsonDocument& menuJson){
@@ -67,7 +73,7 @@ void InputManager::setCurrMenu(String menuID){
   }else {    
     getMenu(menuID, tmpJson);
     currMenuJson = tmpJson;
-    //add the exit menu into the menuitems array
+    //add the exit menu data into the menuitems array
     JsonDocument exitMenuItem;
     uidDataMan->getUidFileMenuItemJson(exitMenuItem);
     exitMenuItem["itemID"] = "exitMenu";
@@ -79,35 +85,25 @@ void InputManager::setCurrMenu(String menuID){
     exitMenuItem["itemActionAudio"] = currMenuJson["exitMenuActionAudio"];
     currMenuJson["menuItems"].add(exitMenuItem);
     currMenuItemCount = currMenuJson["menuItems"].size();
-  }
-  
-  
+  }  
   if(currMenuItemCount > 0){currMenuItemCount--;}
-  String tmpStr = "";
-  serializeJson(tmpJson, tmpStr);
-  Serial.println("tmpJson: " + tmpStr);
-  tmpStr = "";
-  serializeJson(currMenuJson, tmpStr);
-  Serial.println("currMenuJson: " + tmpStr);
-  Serial.println("currMenuItemCount: " + String(currMenuItemCount));
   currMenuItemPos = 0;
 }
 
 void InputManager::setupMenu(){
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;
-  //first set the default sub menu id 
+  //set the default sub menu id 
   if(tmpJson["launchImgMenuID"].as<String>().length() > 0){
     defSubMenuID = tmpJson["launchImgMenuID"].as<String>();
-    Serial.println("Setting Def Sub Menu ID to: " + defSubMenuID);
     currMenuItemPos == 0;
-    doCurrMenuItem();
+    showCurrMenuItem();
   }
   
 };
 
 void InputManager::getMenu(String menuID, JsonDocument& menuJson){
-  Serial.println("GetMenu");
+  //Serial.println("GetMenu");
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;
   if(tmpJson["menus"].is<JsonArray>() && !tmpJson["menus"].isNull()){ 
@@ -115,9 +111,6 @@ void InputManager::getMenu(String menuID, JsonDocument& menuJson){
         if (menu["menuID"] == menuID) {
             Serial.println("Found Menu");
             menuJson = menu;
-            String tmpStr = "";
-            serializeJson(menu, tmpStr);
-            Serial.println("getmenu() menu json: " + tmpStr);
             return;
         }
     }
@@ -129,20 +122,20 @@ void InputManager::getMenu(String menuID, JsonDocument& menuJson){
 }
 
 void InputManager::doRotaryButton(){
-  Serial.println("doRotaryButton");
   String tmpActionType = currMenuItemJson["itemActionType"].as<String>();
   String tmpActionData = currMenuItemJson["itemActionData"].as<String>();
   String tmpMenuID = currMenuItemJson["itemID"].as<String>();
-  const char* tmpActionAudio = currMenuItemJson["itemActionAudio"].as<String>().c_str();
+  String tmpAA = currMenuItemJson["itemActionAudio"].as<String>();
+  const char* tmpActionAudio = tmpAA.c_str();
+
+  Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
 
   //do default menu items check
   if(tmpMenuID == "1" && defSubMenuID.length() > 0){
-    Serial.println("Opening default sub menu");
     setCurrMenu(defSubMenuID);
     currMenuItemPos = 0;
-    doCurrMenuItem();
+    showCurrMenuItem();
   }else if(tmpActionType == "internal"){
-    Serial.println("Do Internal");
     if(tmpActionData == "doDeepSleep"){
       doDeepSleep();
     }
@@ -152,21 +145,34 @@ void InputManager::doRotaryButton(){
   }else if(tmpActionType == "menu" && tmpActionData.length() > 0){
     setCurrMenu(tmpActionData);
     currMenuItemPos = 0;
-    doCurrMenuItem();
+    showCurrMenuItem();
+    doInputEventAudio(tmpActionAudio);
   }else if(tmpActionType == "launchGame" && tmpActionData.length() > 0){
-    Serial.println("Launch Game From Menu Click");
+    Serial.println("Launch Game From Menu Click: "  + tmpActionData);
+    sendToZap(tmpActionData);
+    doInputEventAudio(tmpActionAudio);    
   }else if(tmpActionType == "launchScript" && tmpActionData.length() > 0){
-    Serial.println("Launch Script From Menu Click");
+    Serial.println("Launch Script From Menu Click: " + tmpActionData);
+    sendToZap(tmpActionData);
+    doInputEventAudio(tmpActionAudio);
   }else {
     Serial.println("Failed to find action");
   }
 
 }
 
+void InputManager::doInputEventAudio(const char* aPath){
+  if(strlen(aPath) == 0){
+    return;
+  }
+  Serial.println("Inpt Aud Path: " + String(aPath));
+  feedbackManager->playAudio(aPath);
+}
+
 void InputManager::doRotaryTurn(int currDir){
   int currRotPos = encoder->getPosition();
-  if(lastRotationPos < currRotPos){
-    Serial.println("Rotate Next");
+  if(lastRotationPos > currRotPos){
+    //Serial.println("Rotate Next");
     if(currMenuItemPos == currMenuItemCount){
       currMenuItemPos = 0;
     }else {
@@ -174,8 +180,8 @@ void InputManager::doRotaryTurn(int currDir){
     }
     lastRotationPos = currRotPos;
     encoder->tick();
-  }else if(lastRotationPos > currRotPos){
-    Serial.println("Rotate Prev");
+  }else if(lastRotationPos < currRotPos){
+    //Serial.println("Rotate Prev");
     if(currMenuItemPos == 0){
       currMenuItemPos = currMenuItemCount;
     }else {
@@ -186,29 +192,20 @@ void InputManager::doRotaryTurn(int currDir){
   }else{
     encoder->tick();
   }
-  Serial.println("currMenuItemPos: " + String(currMenuItemPos));
-  doCurrMenuItem();
+  showCurrMenuItem();
 }
 
-void InputManager::doCurrMenuItem(){
-  Serial.println("doCurrMenuItem");
+void InputManager::showCurrMenuItem(){
   currMenuItemJson = currMenuJson["menuItems"][currMenuItemPos];
-  String tmpStr = "";
-  serializeJson(currMenuItemJson, tmpStr);
-  Serial.println("currMenuItemJson: " + tmpStr);
   String tmpImgPath = currMenuItemJson["itemImage"].as<String>();
   //do default menu items check
   if(tmpImgPath == "dispNowPlaying"){
-    Serial.println("show NowPlaying");
     screenManager->dispNowPlaying();
   }else if(tmpImgPath == "dispPowerOff"){
-    Serial.println("show poweroff");
     screenManager->dispPowerOff();
   }else if(tmpImgPath == "dispGotoSleep"){
-    Serial.println("show pwr off");
     screenManager->dispGotoSleep();
   }else {
-    Serial.println("show other");
     screenManager->dispJpgImg(tmpImgPath.c_str());
   }
 }
@@ -220,4 +217,31 @@ void InputManager::doDeepSleep(){
   digitalWrite(BOARD_PWR_EN, LOW);    // Power off CC1101 and LED
   esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK(0), ESP_EXT1_WAKEUP_ANY_LOW);   // Hibernate using user keys
   esp_deep_sleep_start();
+}
+
+bool InputManager::sendToZap(String& gamePath) {
+  String ZAPURL = "ws://<replace>:7497" + String(ZaparooLaunchApi::wsPath);
+  String lastSerialCmd = "";
+  bool sent = false;
+  if (isSerialOnly) {
+    lastSerialCmd = "SCAN\ttext=" + gamePath;
+    if(!feedbackManager->resetOnRemove){
+      lastSerialCmd = lastSerialCmd + "\tremovable=no";
+      Serial.println(lastSerialCmd);
+    }
+    Serial.flush();
+    sent = true;
+  } else {
+    String newURL = ZAPURL;
+    newURL.replace("<replace>", gamePath.startsWith("steam://") ? IPSteam : IPZap);
+    ZapLaunchClient->url(newURL);
+    int code = ZapLaunchClient->launch(gamePath);
+    Serial.println("resp code: " + String(code));
+    if (code > 0) {
+      feedbackManager->expressError(code);
+    } else {
+      sent = true;
+    }
+  }
+  return sent;
 }

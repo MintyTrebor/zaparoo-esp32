@@ -257,12 +257,28 @@ void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRem
   cmdData["msgType"] = "writeResults";
   tmpLaunchCmd.replace("launch_cmd::", "");
   notifyClients("Launch Cmd Written: " + launchCmd, "log");
-  if (tokenScanner->tokenPresent()) {
+  bool present = tokenScanner->tokenPresent();
+  const char* tmpUID = "";
+  ZaparooToken* parsed = present ? tokenScanner->getNewToken() : NULL;
+  if(present){
     bool success = tokenScanner->writeLaunch(launchCmd, audioLaunchFile, audioRemoveFile, launchJPEGFile);
+    if (parsed) {
+      tmpUID = parsed->getId();
+    }
     if (success) {
       cmdData["data"]["isSuccess"] = true;
       cmdData["data"]["isCardDetected"] = true;
       cmdClients(cmdData);
+      delay(200);
+      #ifdef Lilygo
+      JsonDocument tmpUIDFile;
+      UidDM.getUidFileDefaultJson(tmpUIDFile);
+      tmpUIDFile["launchAudio"] = audioLaunchFile;
+      tmpUIDFile["removeAudio"] = audioRemoveFile;
+      tmpUIDFile["launchImg"] = launchJPEGFile;
+      UidDM.partialUpdUidFileJson(tmpUID, tmpUIDFile);
+      #endif
+
     } else {
       cmdData["data"]["isSuccess"] = false;
       cmdData["data"]["isCardDetected"] = true;
@@ -470,7 +486,10 @@ void handleSend(){
   bool sent = false;
   bool playAudioFirst = serialOnly && feedback.resetOnRemove && !uidScanMode;
   feedback.setUidMappings(token);
+  #ifdef Lilygo
+  inpMan.setCurrMenu("9999");
   inpMan.setupMenu();
+  #endif
   if(playAudioFirst){
     feedback.successActions(token); //Play the audio before launch to support remove with simple serial
     sent = true;
@@ -514,6 +533,9 @@ bool readScanner() {
         removeAudio = token->getRemoveAudio();
       }
       feedback.cardRemovedActions(token);
+      #ifdef Lilygo
+      inpMan.setCurrMenu("9999");
+      #endif
       if (feedback.resetOnRemove && !serialOnly && token->isPayloadSet()) {
         String payloadAsString = String(token->getPayload());
         if (!payloadAsString.startsWith("steam://")) {
@@ -527,6 +549,9 @@ bool readScanner() {
     }else if (present && inserted && serialOnly && feedback.resetOnRemove && !uidScanMode){
       Serial.println(lastSerialCommand);
       Serial.flush();
+      #ifdef Lilygo
+      inpMan.setCurrMenu("9999");
+      #endif
     }
     delay(10);
   }
@@ -616,30 +641,27 @@ void setup() {
   feedback.init(&preferences, deviceType, &devMan);
   UidDM.init(feedback.sdCardEnabled);
   feedback.initUidDataManager(&UidDM);
-#ifdef Lilygo
-  scrnMan.init();
-  scrnMan.dispDefaultImg("");
-  delay(1000);
-  feedback.initScreen(&scrnMan);
-  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan, &UidDM);
-  inpMan.setCurrMenu("9999");
-  pinMode(ENCODER_KEY, INPUT);  
-  //attachInterrupt(ENCODER_KEY, doRotButn, FALLING);
-  rotaryButton.setDebounceTime(25);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
-  xTaskCreatePinnedToCore(rotary, "rotary", 4096, NULL, 2, NULL,0);
-#endif
   setPref_Bool("enNfcWr", false);
   uidScanMode= false;
-
   //set globals to reduce the number of call to preference library (performance)
   zapIp = preferences.getString("zapIp", "mister.local");
   zapEnabled = preferences.getBool("zapEnabled", true);
   steamEnabled = preferences.getBool("steamEnabled", false);
   steamIp = preferences.getString("steamIp", "steamOS.local");
   serialOnly = preferences.getBool("serialOnly", false);
-
+#ifdef Lilygo
+  scrnMan.init();
+  scrnMan.dispDefaultImg("");
+  delay(1000);
+  feedback.initScreen(&scrnMan);
+  inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan, &UidDM, &ZapClient, serialOnly, steamIp, zapIp);
+  inpMan.setCurrMenu("9999");
+  rotaryButton.setDebounceTime(100);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
+  xTaskCreatePinnedToCore(rotary, "rotary", 8192, NULL, 2, NULL,0);
+#endif
+  
   server.on("/", HTTP_GET, [](AsyncWebServerRequest* request) {
     AsyncWebServerResponse* response = request->beginResponse_P(200, "text/html", index_html, index_html_len);
     response->addHeader("Content-Encoding", "gzip");
@@ -716,12 +738,11 @@ void rotary(void *pvParameters) {
       inpMan.doRotaryTurn(int(encoder.getDirection()));
       pos = newPos;
     }
-    if(rotaryButton.isPressed()){
-      //buttonTrigger = false;
+    if(rotaryButton.isReleased()){
       inpMan.doRotaryButton();
-      Serial.println("Button Pressed");
-    }
-    delay(10);
+      //Serial.println("Button Pressed Count: " + String(rotaryButton.getCount()));
+    } 
+    delay(50);
   }
 }
 void battery_task(void *pvParameters) {

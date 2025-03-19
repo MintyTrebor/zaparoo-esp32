@@ -10,13 +10,16 @@
   let htmlSerRes: htmlFormattedSearchRes = ZapUtils.getBlankhmtlSrchRes();
   let selectedSource: string = "";
   let dialogWait: HTMLDialogElement;
-  let uidRecord: UIDExtdRecord = UIDUtils.getBlank();
+  let dialogWrite: HTMLDialogElement;
+  let dialogSuccess: HTMLDialogElement;
+  let dialogFailure: HTMLDialogElement;
+  let dialogNoCard: HTMLDialogElement;
+  let dialogScriptStart: HTMLDialogElement;
   let lastUIDVal : string = "";
   let config: ConfigData = EspUtils.getBlank();
-  let uidFJson: UIDFileJson = UIDUtils.getBlankFileJson();
+  let writeMode: boolean = false;
   UIDUtils.scannedUIDFileJson().subscribe(value=> tempUID(value));
   EspUtils.config().subscribe(value=> config = value);
-  //UIDUtils.UIDRecord().subscribe(value=> tempUID(value));
   ZapUtils.zapSrcRes().subscribe(value=> zapSrchRes = value);
   ZapUtils.indexedSystemsList().subscribe(value=> zapSysList = value);
   ZapUtils.htmlSrchRes().subscribe(value=> htmlSerRes = value);
@@ -28,38 +31,33 @@
   let audLaunchP: string | null ;
   let audRemoveP: string | null ;
   let picLaunchP: string | null ;
-  let dialogWrite: HTMLDialogElement;
-  let dialogSuccess: HTMLDialogElement;
-  let dialogFailure: HTMLDialogElement;
-  let dialogNoCard: HTMLDialogElement;
-  let dialogScriptStart: HTMLDialogElement;
   let mapTxtHelp: string = "Create a map between a readonly RFID Tag/Amiibo & the selected game Launch Path. Mapping Record is stored in Zaparoo.";
   let writeTxtHelp: string = "Write the Game Launch & Audio File Paths to NFC Card/Tag";
   let testLaunchTxtHelp: string = "Test Launch the selected Game"
   
      
   function WrStIsChanged(currVal: writeResultState) {
+    console.log("wrtState: ", currVal)  
+    if(writeMode){
       switch(currVal.state){
-        case 1:
-          diagWaitClose();
-          diagSucessOpen();
-          break;
-        case 2:
-          diagWaitClose();
-          diagFailOpen();
-          break;
-        case 3:
-          diagWaitClose();
-          diagNoCardOpen();
-          break;
-      }
+          case 1:
+            diagWaitClose();
+            diagSuccessOpen();
+            writeMode = false;
+            break;
+          case 2:
+            diagWaitClose();
+            diagFailOpen();
+            writeMode = false;
+            break;
+          case 3:
+            diagWaitClose();
+            diagNoCardOpen();
+            writeMode = false;
+            break;
+        }
+    }
   }
-
-  // function tempUID(currUIDrec: UIDExtdRecord){
-  //   if(lastUIDVal != currUIDrec.UID){
-  //     lastUIDVal = currUIDrec.UID;
-  //   }
-  // }
 
   function tempUID(currUIDrec: UIDFileJson){
     if(lastUIDVal != UIDUtils.currScannedUID()){
@@ -87,9 +85,10 @@
     if(audLaunchP){audLaunchP = CommonUtils.validateAudioPath(audLaunchP)};
     if(audRemoveP){audRemoveP = CommonUtils.validateAudioPath(audRemoveP)};
     if(picLaunchP){picLaunchP = CommonUtils.validateAudioPath(picLaunchP)};
-    ZapUtils.doWriteCard(selectedGame, audLaunchP, audRemoveP, picLaunchP);
+    writeMode = true;
     diagWriteClose();
     diagWaitOpen();
+    ZapUtils.doWriteCard(selectedGame, audLaunchP, audRemoveP, picLaunchP);
   };
 
   function diagScriptStart(){
@@ -99,11 +98,11 @@
   }
 
   function diagWriteClose() {
-    dialogWrite.close("true");
+    if(dialogWrite.open){dialogWrite.close("true")};
   }
 
   function diagWriteCancel() {
-    dialogWrite.close("true");
+    if(dialogWrite.open){dialogWrite.close("true")};
     ZapUtils.toggleCreateMode(false);
   }
 
@@ -143,7 +142,7 @@
     ZapUtils.toggleCreateMode(false);
   }
 
-  function diagSucessOpen() {
+  function diagSuccessOpen() {
     dialogSuccess.showModal();
   }
 
@@ -159,6 +158,7 @@
     if(audLaunchP){audLaunchP = CommonUtils.validateAudioPath(audLaunchP)};
     if(audRemoveP){audRemoveP = CommonUtils.validateAudioPath(audRemoveP)};
     if(picLaunchP){picLaunchP = CommonUtils.validateAudioPath(picLaunchP)};
+    writeMode = true;
     ZapUtils.doWriteZapScript(lastUIDVal, selectedGame, audLaunchP, audRemoveP, picLaunchP);
     dialogScriptStart.close("true");
     UIDUtils.setUIDMode(false);

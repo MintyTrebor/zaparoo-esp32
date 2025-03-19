@@ -9,7 +9,8 @@
       UIDUtils.setUIDMode(true);
     })
     onDestroy(() => {
-      UIDUtils.setUIDMode(false);
+      //UIDUtils.setUIDMode(false);
+      
     });
 </script>
 

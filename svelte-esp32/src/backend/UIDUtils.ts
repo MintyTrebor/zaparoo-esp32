@@ -24,6 +24,11 @@ export class UIDUtils{
         if(!EspUtils.sendMessage(newCMD)){
             setTimeout(()=> this.setUIDMode(value), 2000);
         }
+        if(!this.isUIDModeEnabled){
+            let currData: UIDFileJson = this.getBlankFileJson();
+            this.currentScannedFileJson.set(currData);
+            this.currentScannedUID = "";
+        }
     }
     
     static getBlank(): UIDExtdRecord{

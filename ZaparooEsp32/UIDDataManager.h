@@ -8,8 +8,6 @@ class UIDDataManager {
   private:
     bool SDCardEnabled;
     void createNewUidFile();
-    void getUidFileDefaultJson(JsonDocument& fileDataJson);
-    void getUidFileMenuJson(JsonDocument& fdJson);
   public:    
     UIDDataManager();
     ~UIDDataManager();
@@ -20,4 +18,6 @@ class UIDDataManager {
     void getUidFileJson(const char* UID, JsonDocument& fileDataJson, bool& fileExists);
     void partialUpdUidFileJson(const char* UID, JsonDocument updateDataJson);
     void getUidFileMenuItemJson(JsonDocument& fdJson);
+    void getUidFileDefaultJson(JsonDocument& fileDataJson);
+    void getUidFileMenuJson(JsonDocument& fdJson);
 };
