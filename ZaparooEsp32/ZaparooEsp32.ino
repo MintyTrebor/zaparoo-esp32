@@ -40,6 +40,7 @@ String deviceType = "PN532";
 PN532_I2C pn532_i2c(Wire);
 String deviceType = "Lilygo";
 ezButton rotaryButton(ENCODER_KEY);
+ezButton resetButton(BOARD_USER_KEY);
 ScreenManager scrnMan;
 InputManager inpMan;
 DeviceManager devMan;
@@ -53,6 +54,7 @@ const uint8_t i2c_scl = BOARD_I2C_SCL;
 bool pmu_ret = false;
 RotaryEncoder encoder(ENCODER_INA, ENCODER_INB, RotaryEncoder::LatchMode::TWO03);
 int lastRotPos = 0;
+int sleepCounter = 0;
 bool buttonTrigger;
 #endif
 
@@ -515,6 +517,10 @@ bool readScanner() {
     bool present = tokenScanner->tokenPresent();
     ZaparooToken* parsed = present ? tokenScanner->getNewToken() : NULL;
     if (present && parsed) {
+      #ifdef Lilygo
+      sleepCounter = 0;
+      feedback.doDoze(false);
+      #endif
       if (!parsed->getValid()) {
         inserted = false;
         delete parsed;
@@ -534,6 +540,8 @@ bool readScanner() {
       }
       feedback.cardRemovedActions(token);
       #ifdef Lilygo
+      sleepCounter = 0;
+      feedback.doDoze(false);
       inpMan.setCurrMenu("9999");
       #endif
       if (feedback.resetOnRemove && !serialOnly && token->isPayloadSet()) {
@@ -550,6 +558,8 @@ bool readScanner() {
       Serial.println(lastSerialCommand);
       Serial.flush();
       #ifdef Lilygo
+      sleepCounter = 0;
+      feedback.doDoze(false);
       inpMan.setCurrMenu("9999");
       #endif
     }
@@ -656,7 +666,8 @@ void setup() {
   feedback.initScreen(&scrnMan);
   inpMan.init(&scrnMan, &encoder, &feedback, &pwrMan, &UidDM, &ZapClient, serialOnly, steamIp, zapIp);
   inpMan.setCurrMenu("9999");
-  rotaryButton.setDebounceTime(100);
+  rotaryButton.setDebounceTime(50);
+  resetButton.setDebounceTime(50);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INA), doRotTurn, CHANGE);
   attachInterrupt(digitalPinToInterrupt(ENCODER_INB), doRotTurn, CHANGE);
   xTaskCreatePinnedToCore(rotary, "rotary", 8192, NULL, 2, NULL,0);
@@ -730,19 +741,33 @@ void loop() {
 #ifdef Lilygo
 void rotary(void *pvParameters) {
   int pos = 0;
+  sleepCounter = 0;
   while(1){
     rotaryButton.loop();
+    resetButton.loop();
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
+      feedback.doDoze(false);
+      sleepCounter = 0;
       inpMan.doRotaryTurn(int(encoder.getDirection()));
       pos = newPos;
     }
     if(rotaryButton.isReleased()){
+      feedback.doDoze(false);
+      sleepCounter = 0;
       inpMan.doRotaryButton();
       //Serial.println("Button Pressed Count: " + String(rotaryButton.getCount()));
     } 
+    if(resetButton.isReleased()){
+      //Serial.println("reset released");
+      restartESP();
+    }
+    if(sleepCounter > 599){
+      feedback.doDoze(true);
+    }
     delay(50);
+    sleepCounter ++;
   }
 }
 void battery_task(void *pvParameters) {

@@ -23,14 +23,22 @@ void ScreenManager::screenWake(){
   tftScr.sleep(false);
 }
 
+void ScreenManager::setScreenBacklight(bool backLight){
+  if(backLight){
+    digitalWrite(DISPLAY_BL, HIGH);
+  }else{
+    digitalWrite(DISPLAY_BL, LOW);
+  }
+}
+
 void ScreenManager::setNowPlayingPath(const char *nowPlayPath){
   nowPlayingPath = nowPlayPath;
-  //Serial.println("NPP: " + String(nowPlayingPath));
+  //Serial.println("Set NPP To: " + String(nowPlayingPath));
 }
 
 void ScreenManager::setDefImgPath(const char *defImgPath){
   defaultImgPath = defImgPath;
-  //Serial.println("DIP: " + String(defaultImgPath));
+  //Serial.println("Set DIP To: " + String(defaultImgPath));
 }
 
 void ScreenManager::dispDefaultImg(const char *imgPath){
@@ -87,9 +95,11 @@ void ScreenManager::dispSetVolume(){
 void ScreenManager::dispNowPlaying(){
   //Serial.println("CurrNPP: " + String(nowPlayingPath));
   if(nowPlayingPath == nullptr || strlen(nowPlayingPath) == 0){
+    Serial.println("Disp Default");
     dispDefaultImg(defaultImgPath);
   } else {
     //Display the current game image here
+    Serial.println("Disp Curr Now Playing");
     dispJpgImg(nowPlayingPath);
   }
 }

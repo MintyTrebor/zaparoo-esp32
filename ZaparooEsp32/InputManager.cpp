@@ -59,8 +59,9 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
 }
 
 void InputManager::setCurrMenu(String menuID){
-  Serial.println("SettingCurrMenu To: " + String(menuID));
+  //Serial.println("SettingCurrMenu To: " + String(menuID));
   JsonDocument tmpJson;
+  currMenuJson = {};
   if(menuID == 0){
     currMenuItemID = "9999";
   }else {
@@ -90,12 +91,21 @@ void InputManager::setCurrMenu(String menuID){
   currMenuItemPos = 0;
 }
 
+void InputManager::resetToDefaultMenu(){
+  screenManager->setNowPlayingPath("");
+  setCurrMenu("9999");
+}
+
 void InputManager::setupMenu(){
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;
   //set the default sub menu id 
   if(tmpJson["launchImgMenuID"].as<String>().length() > 0){
     defSubMenuID = tmpJson["launchImgMenuID"].as<String>();
+    currMenuItemPos == 0;
+    showCurrMenuItem();
+  }else {
+    defSubMenuID = "";
     currMenuItemPos == 0;
     showCurrMenuItem();
   }
@@ -128,7 +138,7 @@ void InputManager::doRotaryButton(){
   String tmpAA = currMenuItemJson["itemActionAudio"].as<String>();
   const char* tmpActionAudio = tmpAA.c_str();
 
-  Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
+  //Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
 
   //do default menu items check
   if(tmpMenuID == "1" && defSubMenuID.length() > 0){
@@ -143,16 +153,17 @@ void InputManager::doRotaryButton(){
       powerManager->doShutdown();
     }
   }else if(tmpActionType == "menu" && tmpActionData.length() > 0){
+    //Serial.println("Goto Menu : "  + tmpActionData);
     setCurrMenu(tmpActionData);
     currMenuItemPos = 0;
     showCurrMenuItem();
     doInputEventAudio(tmpActionAudio);
   }else if(tmpActionType == "launchGame" && tmpActionData.length() > 0){
-    Serial.println("Launch Game From Menu Click: "  + tmpActionData);
+    //Serial.println("Launch Game From Menu Click: "  + tmpActionData);
     sendToZap(tmpActionData);
     doInputEventAudio(tmpActionAudio);    
   }else if(tmpActionType == "launchScript" && tmpActionData.length() > 0){
-    Serial.println("Launch Script From Menu Click: " + tmpActionData);
+    //Serial.println("Launch Script From Menu Click: " + tmpActionData);
     sendToZap(tmpActionData);
     doInputEventAudio(tmpActionAudio);
   }else {
@@ -165,7 +176,7 @@ void InputManager::doInputEventAudio(const char* aPath){
   if(strlen(aPath) == 0){
     return;
   }
-  Serial.println("Inpt Aud Path: " + String(aPath));
+  //Serial.println("Inpt Aud Path: " + String(aPath));
   feedbackManager->playAudio(aPath);
 }
 
@@ -209,7 +220,6 @@ void InputManager::showCurrMenuItem(){
     screenManager->dispJpgImg(tmpImgPath.c_str());
   }
 }
-
 
 void InputManager::doDeepSleep(){
   screenManager->screenSleep();

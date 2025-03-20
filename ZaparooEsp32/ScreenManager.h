@@ -31,4 +31,5 @@ class ScreenManager {
     void screenWake();
     void setNowPlayingPath(const char* nowPlayPath);
     void setDefImgPath(const char* defImgPath);
+    void setScreenBacklight(bool backLight);
 };

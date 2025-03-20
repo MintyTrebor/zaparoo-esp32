@@ -40,4 +40,5 @@ class InputManager {
     void doDeepSleep();
     void setCurrMenu(String menuID);
     void setupMenu();
+    void resetToDefaultMenu();
 };

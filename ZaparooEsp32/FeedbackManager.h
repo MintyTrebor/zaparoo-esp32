@@ -81,6 +81,7 @@ public:
     void initUidDataManager(UIDDataManager* UidDM); 
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
+    void doDoze(bool doze);
     #endif
      
 };

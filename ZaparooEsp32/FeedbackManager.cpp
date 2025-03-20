@@ -61,6 +61,26 @@ void FeedbackManager::initScreen(ScreenManager* scrnMgr) {
   screenManager = scrnMgr;
   screenManager->setDefImgPath(defaultImgPath.c_str());
 }
+
+void FeedbackManager::doDoze(bool doze){
+  if(doze){
+    if(pwrLedEnabled){
+      CRGB leds[NUM_LEDS];
+      FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+      FastLED.setBrightness(5);
+      for(int i = 0; i < NUM_LEDS; i++){
+          leds[i] = CRGB::Purple;
+      }
+      FastLED.show();
+    }
+    screenManager->setScreenBacklight(false);
+  }else{
+    if(pwrLedEnabled){
+      ledRingRed();
+    }
+    screenManager->setScreenBacklight(true);
+  }
+}
 #endif
 
 void FeedbackManager::initUidDataManager(UIDDataManager* UidDM) {
@@ -417,11 +437,7 @@ void FeedbackManager::expressError(int code) {
 
 void FeedbackManager::successActions(ZaparooToken* obj) {
     launchLedOn(0);
-    const char* pathToPlay = obj->getLaunchAudio();
-    if (pathToPlay == nullptr || strlen(pathToPlay) == 0) {
-        pathToPlay = defaultLaunchAudio.c_str();
-    }
-
+    
 #ifdef Lilygo
     if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
       const char* imgToShow = obj->getLaunchJPEG();
@@ -429,8 +445,16 @@ void FeedbackManager::successActions(ZaparooToken* obj) {
         screenManager->dispJpgImg(imgToShow);
         screenManager->setNowPlayingPath(imgToShow);
       }
+    }else if(deviceType == "Lilygo"){
+      screenManager->setNowPlayingPath(nullptr);
+      screenManager->dispDefaultImg(defaultImgPath.c_str());
     }
 #endif
+
+    const char* pathToPlay = obj->getLaunchAudio();
+    if (pathToPlay == nullptr || strlen(pathToPlay) == 0) {
+        pathToPlay = defaultLaunchAudio.c_str();
+    }
 
     if (pathToPlay != nullptr && strlen(pathToPlay) > 0) {
         if (buzzOnLaunch) {
@@ -456,6 +480,12 @@ void FeedbackManager::setUidMappings(ZaparooToken* obj) {
       obj->setLaunchAudio(uidFile["launchAudio"].as<String>().c_str());
       obj->setRemoveAudio(uidFile["removeAudio"].as<String>().c_str());
       obj->setLaunchJPEG(uidFile["launchImg"].as<String>().c_str()); 
+    }
+    if(uidFile["launchImg"].as<String>().length() > 0){
+      screenManager->setNowPlayingPath(uidFile["launchImg"].as<String>().c_str());
+    }else {
+      screenManager->setNowPlayingPath(nullptr);
+      //screenManager->dispDefaultImg(defaultImgPath.c_str());
     }
 }
 
@@ -489,20 +519,6 @@ void FeedbackManager::cardInsertedActions(ZaparooToken* obj) {
     if (pathToPlay && strlen(pathToPlay) > 0) {
         playAudio(pathToPlay);
     }
-#ifdef Lilygo
-    if(deviceType == "Lilygo" && obj->isLaunchJPEGSet()){
-      const char* imgToShow = obj->getLaunchJPEG();
-      if (imgToShow || strlen(imgToShow) > 0) {
-        screenManager->setNowPlayingPath(imgToShow);
-      }else {
-        screenManager->setNowPlayingPath("");
-      }
-      screenManager->dispNowPlaying();
-    }else if(deviceType == "Lilygo"){
-      screenManager->setNowPlayingPath("");
-      screenManager->dispNowPlaying();
-    }
-#endif
     if (buzzOnDetect) {
         motorOn(0);
         motorOff(100);
