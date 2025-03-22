@@ -222,6 +222,7 @@ void InputManager::showCurrMenuItem(){
 }
 
 void InputManager::doDeepSleep(){
+  feedbackManager->ledRingSleep();
   screenManager->screenSleep();
   digitalWrite(BOARD_PN532_RF_REST, LOW); //Sleep PN532
   digitalWrite(BOARD_PWR_EN, LOW);    // Power off CC1101 and LED

@@ -741,6 +741,7 @@ void loop() {
 #ifdef Lilygo
 void rotary(void *pvParameters) {
   int pos = 0;
+  bool isDoze = false;
   sleepCounter = 0;
   while(1){
     rotaryButton.loop();
@@ -748,23 +749,31 @@ void rotary(void *pvParameters) {
     encoder.tick();
     int newPos = encoder.getPosition();
     if (pos != newPos) {
-      feedback.doDoze(false);
-      sleepCounter = 0;
-      inpMan.doRotaryTurn(int(encoder.getDirection()));
-      pos = newPos;
+      if(isDoze){
+        feedback.doDoze(false);
+        isDoze = false;
+        sleepCounter = 0;
+        pos = newPos;
+      }else{
+        inpMan.doRotaryTurn(int(encoder.getDirection()));
+        pos = newPos;
+      }
     }
     if(rotaryButton.isReleased()){
-      feedback.doDoze(false);
-      sleepCounter = 0;
-      inpMan.doRotaryButton();
-      //Serial.println("Button Pressed Count: " + String(rotaryButton.getCount()));
+      if(isDoze){
+        feedback.doDoze(false);
+        isDoze = false;
+        sleepCounter = 0;
+      }else{
+        inpMan.doRotaryButton();
+      }
     } 
     if(resetButton.isReleased()){
-      //Serial.println("reset released");
       restartESP();
     }
     if(sleepCounter > 599){
       feedback.doDoze(true);
+      isDoze = true;
     }
     delay(50);
     sleepCounter ++;

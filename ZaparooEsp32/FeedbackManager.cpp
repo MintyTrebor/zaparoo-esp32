@@ -370,6 +370,20 @@ void FeedbackManager::lilygoWifiLed() {
   }
 }
 
+void FeedbackManager::ledRingSleep() {
+    CRGB leds[NUM_LEDS];
+    FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);
+    FastLED.setBrightness(10);
+    for(int j = 0; j < NUM_LEDS; j++){
+        leds[j] = CRGB::Black;
+    }
+    leds[0] = CRGB::Red;
+    leds[2] = CRGB::Red;
+    leds[4] = CRGB::Red;
+    leds[6] = CRGB::Red;
+    FastLED.show();
+}
+
 void FeedbackManager::ledRingRed() {
     CRGB leds[NUM_LEDS];
     FastLED.addLeds<WS2813, LED_DATA_PIN, GRB>(leds, NUM_LEDS);

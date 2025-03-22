@@ -82,6 +82,7 @@ public:
     #ifdef Lilygo
     void initScreen(ScreenManager* scrnMgr);
     void doDoze(bool doze);
+    void ledRingSleep();
     #endif
      
 };
