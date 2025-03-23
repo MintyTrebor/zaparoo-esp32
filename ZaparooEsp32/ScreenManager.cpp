@@ -20,7 +20,91 @@ void ScreenManager::screenSleep(){
 }
 
 void ScreenManager::screenWake(){
+
   tftScr.sleep(false);
+}
+
+int ScreenManager::rgbConvert(unsigned char r, unsigned char g, unsigned char b) {
+    if (r < 0 || 255 < r || g < 0 || 255 < g || b < 0 || b > 255)
+        return -1;
+
+    unsigned char red = r >> 3;
+    unsigned char green = g >> 2;
+    unsigned char blue = b >> 3;
+
+    int result = (red << (5 + 6)) | (green << 5) | blue;
+
+//tests
+    printf("red: %x\n", red);
+    printf("green: %x\n", green);
+    printf("blue: %x\n", blue);
+    printf("result: %x\n", result);
+
+    return result;
+}
+
+
+void ScreenManager::drawTextStr(String text, JsonDocument txtRGBJson, JsonDocument backGrdRGBJson, int fntSize, int fontNumber){
+  tftScr.setCursor(0, 0);
+  tftScr.setRotation(1);
+  tftScr.fillScreen(rgbConvert(backGrdRGBJson["r"], backGrdRGBJson["g"], backGrdRGBJson["b"]));
+  tftScr.setTextColor(rgbConvert(txtRGBJson["r"], txtRGBJson["g"], txtRGBJson["b"]));
+  tftScr.setTextSize(fntSize);
+  tftScr.setTextFont(fontNumber);
+  int16_t yStartPos = 0;
+  int wordStart = 0;
+  int wordEnd = 0;
+  int lineCount = 1;
+  int lineCount2 = 1;
+  String lineTxt = "";
+  //first work out how many lines so we can set y position
+  while ( (text.indexOf(' ', wordStart) >= 0) && ( wordStart <= text.length())) {
+    wordEnd = text.indexOf(' ', wordStart + 1);    
+    uint16_t len = tftScr.textWidth(text.substring(wordStart, wordEnd));
+    if (tftScr.textWidth(lineTxt) + len >= tftScr.width()) {
+      lineCount ++;
+      lineTxt = "";
+      wordStart++;
+    } else {
+      lineTxt = lineTxt + text.substring(wordStart, wordEnd);
+      wordStart = wordEnd;
+    }   
+  }
+  lineTxt = "";
+  wordStart = 0;
+  wordEnd = 0;
+  //now calc size of text block based on font size
+  int16_t yTxtBlockSize = lineCount * tftScr.fontHeight();
+  if(yTxtBlockSize < tftScr.height()){
+    int16_t ySizeDif = tftScr.height() - yTxtBlockSize;
+    yStartPos = int(ySizeDif / 2);
+    if(yStartPos < 2){yStartPos = 0;}
+  }
+  tftScr.setCursor(0, yStartPos);
+  
+  while ( (text.indexOf(' ', wordStart) >= 0) && ( wordStart <= text.length())) {
+    wordEnd = text.indexOf(' ', wordStart + 1);    
+    uint16_t len = tftScr.textWidth(text.substring(wordStart, wordEnd));
+    if (tftScr.textWidth(lineTxt) + len >= tftScr.width()) {
+      if(tftScr.textWidth(lineTxt) < tftScr.width()){
+        int numPixelSpacesNeeded = int((tftScr.width() - tftScr.textWidth(lineTxt)) / 2);
+        tftScr.setCursor(numPixelSpacesNeeded, tftScr.getCursorY());
+      }
+      tftScr.print(lineTxt);
+      tftScr.println();
+      lineCount2 ++;
+      lineTxt = "";
+      wordStart++;
+    } else {
+      lineTxt = lineTxt + text.substring(wordStart, wordEnd);
+      wordStart = wordEnd;
+    }   
+  }
+  if(tftScr.textWidth(lineTxt) < tftScr.width()){
+    int numPixelSpacesNeeded = int((tftScr.width() - tftScr.textWidth(lineTxt)) / 2);
+    tftScr.setCursor(numPixelSpacesNeeded, tftScr.getCursorY());
+  }
+  tftScr.print(lineTxt);
 }
 
 void ScreenManager::setScreenBacklight(bool backLight){
@@ -132,7 +216,7 @@ void ScreenManager::drawSdJpeg(const char *filename, int xpos, int ypos) {
 }
 
 void ScreenManager::jpegRender(int xpos, int ypos) {
-
+  tftScr.setRotation(0);
   uint16_t *pImg;
   uint16_t mcu_w = JpegDec.MCUWidth;
   uint16_t mcu_h = JpegDec.MCUHeight;

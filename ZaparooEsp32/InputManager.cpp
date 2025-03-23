@@ -209,6 +209,14 @@ void InputManager::doRotaryTurn(int currDir){
 void InputManager::showCurrMenuItem(){
   currMenuItemJson = currMenuJson["menuItems"][currMenuItemPos];
   String tmpImgPath = currMenuItemJson["itemImage"].as<String>();
+  String tmpTxtStr = currMenuItemJson["itemText"].as<String>();
+  JsonDocument tmpTxtRGB = currMenuItemJson["itemTextColour"];
+  JsonDocument tmpScrnRBG;
+  tmpScrnRBG["r"] = 255;
+  tmpScrnRBG["g"] = 255;
+  tmpScrnRBG["b"] = 255;
+  const char* tmpTextChar = tmpTxtStr.c_str();
+  Serial.println("String 4 Scrn: " + currMenuItemJson["itemText"].as<String>());
   //do default menu items check
   if(tmpImgPath == "dispNowPlaying"){
     screenManager->dispNowPlaying();
@@ -217,7 +225,11 @@ void InputManager::showCurrMenuItem(){
   }else if(tmpImgPath == "dispGotoSleep"){
     screenManager->dispGotoSleep();
   }else {
-    screenManager->dispJpgImg(tmpImgPath.c_str());
+    if (tmpTextChar || strlen(tmpTextChar) > 0) {
+      screenManager->drawTextStr(tmpTxtStr, tmpTxtRGB, tmpScrnRBG, 2, 2);
+    }else{
+      screenManager->dispJpgImg(tmpImgPath.c_str());
+    }
   }
 }
 

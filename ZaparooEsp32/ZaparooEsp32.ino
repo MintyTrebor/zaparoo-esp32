@@ -756,6 +756,7 @@ void rotary(void *pvParameters) {
         pos = newPos;
       }else{
         inpMan.doRotaryTurn(int(encoder.getDirection()));
+        sleepCounter = 0;
         pos = newPos;
       }
     }
@@ -765,6 +766,7 @@ void rotary(void *pvParameters) {
         isDoze = false;
         sleepCounter = 0;
       }else{
+        sleepCounter = 0;
         inpMan.doRotaryButton();
       }
     } 

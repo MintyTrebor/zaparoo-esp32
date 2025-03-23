@@ -10,6 +10,17 @@
         min-height: 75vh;
         min-width: 75vw;
     }
+    .colDialog {
+        min-height: 200px;
+        min-width: 200px;
+    }
+    .dark {
+		--cp-bg-color: #333;
+		--cp-border-color: white;
+		--cp-text-color: white;
+		--cp-input-color: #555;
+		--cp-button-hover-color: #777;
+	}
 </style>
 <script lang="ts">
     import { UIDUtils } from "../backend/UIDUtils";
@@ -19,9 +30,11 @@
     import { EspUtils } from "../backend/EspUtils";
     import {v4 as uuidv4} from 'uuid';
     import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
-    import { faEllipsis, faSearch, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
+    import { faEllipsis, faPaintBrush, faSearch, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
     import SearchDialog from './ZapSearch.svelte'
+    import ColorPicker from 'svelte-awesome-color-picker';
     let srchDialog: HTMLDialogElement;
+    let showColPicker: HTMLDialogElement;
     let config: ConfigData = $state(EspUtils.getBlank());
     let uidFJson: UIDFileJson = $state(UIDUtils.getBlankFileJson());
     let currUID: string = $state("");
@@ -31,6 +44,12 @@
     let currSrchResult:string = $state("");
     UIDUtils.scannedUIDFileJson().subscribe(value=> updateScan(value));
     EspUtils.config().subscribe(value=> config = value);
+    let rgb: any = $state({
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 1
+    });
     const handleSubmit = (event: Event) => {
         event.preventDefault();
         const updRec = UIDUtils.getBlankFileJson();
@@ -88,7 +107,9 @@
         tmpMenu.exitMenuActionAudio = "";
         tmpMenu.exitMenuImg = "";
         tmpMenu.exitMenuText = "";
-        tmpMenu.exitMenuTextColour = "";
+        tmpMenu.exitMenuTextColour.r = 0;
+        tmpMenu.exitMenuTextColour.g = 0;
+        tmpMenu.exitMenuTextColour.b = 0;
         tmpMenu.menuName = "";
         tmpMenu.menuItems = [];
         uidFJson.menus.push(tmpMenu);
@@ -112,13 +133,23 @@
         tmpItem.itemAudio = "";
         tmpItem.itemImage = "";
         tmpItem.itemText = "";
-        tmpItem.itemTextColour = "";
+        tmpItem.itemTextColour.r = 0;
+        tmpItem.itemTextColour.g = 0;
+        tmpItem.itemTextColour.b = 0;
         currSelMenu.menuItems.push(tmpItem);
     }
 
     function showSrchDialog(menuItmId: string){
         currMenuItemID = menuItmId;
         srchDialog.showModal();
+    }
+
+    function showCP(colObject: any, menuItmId: string){
+        currMenuItemID = menuItmId;
+        // rgb.r = colObject.r;
+        // rgb.g = colObject.g;
+        // rgb.b = colObject.b;
+        showColPicker.showModal();
     }
 
     function searchReturn(srchResult: any): void{
@@ -136,6 +167,26 @@
             }
     }
 
+    function updateItemRGB(){
+        showColPicker.close('true');
+        let tmpArr = uidFJson.menus.filter((item: {menuID: string}) => (item.menuID == currSelMenuID));
+            if(tmpArr.length > 0){
+                let tmpMenu: menu = tmpArr[0];
+                let tmpMenuItems = tmpMenu.menuItems.filter((item: {itemID: string}) => (item.itemID == currMenuItemID));
+                if(tmpMenuItems.length > 0){
+                    let tmpItem: menuItem = tmpMenuItems[0];
+                    tmpItem.itemTextColour.r = rgb.r;
+                    tmpItem.itemTextColour.g = rgb.g;
+                    tmpItem.itemTextColour.b = rgb.b;
+                }
+            }
+            console.log("curr json: ", uidFJson);
+            return true;
+    }
+
+    function colButtSet(ItmRGB: any){
+        return `background-color: rgb(${ItmRGB.r}, ${ItmRGB.g}, ${ItmRGB.b})`;
+    }
 </script>
 <div class="text-center">
     <h4>Scan a Token to update</h4>
@@ -191,6 +242,7 @@
                                 </th>
                                 <th scope="col" class="pt-0">Menu Name*</th>
                                 <th scope="col" class="pt-0">Exit Menu Image Path</th>
+                                <th scope="col" class="pt-0">Exit Menu Text</th>
                                 <th scope="col" class="pt-0">Exit Menu Audio Path</th>
                                 <th scope="col" class="pt-0">Exit Menu Destination*</th>
                                 <th scope="col" class="pt-0"></th>
@@ -209,6 +261,9 @@
                                 </td>
                                 <td>
                                     <input type="text" class="form-control" id="menuImg" placeholder="/" bind:value={menu.exitMenuImg}/>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" id="menuTxt" bind:value={menu.exitMenuText}/>
                                 </td>
                                 <td>
                                     <input type="text" class="form-control" id="menuActAudio" placeholder="/" bind:value={menu.exitMenuActionAudio}/>
@@ -246,7 +301,9 @@
                                         <FontAwesomeIcon icon={faSquarePlus}/>
                                     </button>
                                 </th>
-                                <th scope="col">Menu Item Image Path*</th>
+                                <th scope="col">Menu Item Image Path</th>
+                                <th scope="col">Menu Item Text</th>
+                                <th scope="col"></th>
                                 <th scope="col">On Click Audio Path</th>
                                 <th scope="col">Item Action Type*</th>
                                 <th scope="col">Item Action Data*</th>
@@ -262,6 +319,12 @@
                                     </button>
                                 </td>
                                 <td><input type="text" class="form-control" id="itemImg" placeholder="/" bind:value={menuItem.itemImage}/></td>
+                                <td><input type="text" class="form-control" id="itemTxt" bind:value={menuItem.itemText}/></td>
+                                <td>
+                                    <button class="btn" onclick={() => showCP(menuItem.itemTextColour, menuItem.itemID)} style={colButtSet(menuItem.itemTextColour)}>
+                                        <FontAwesomeIcon icon={faPaintBrush}/>
+                                    </button>
+                                </td>
                                 <td><input type="text" class="form-control" id="itemActAudio" placeholder="/" bind:value={menuItem.itemActionAudio}/></td>
                                 <td>
                                     <select class="form-select" id="selItemAction" bind:value={menuItem.itemActionType}>
@@ -315,6 +378,14 @@
         </div>
     {/if}
 </form>
+<dialog bind:this={showColPicker}>
+    <div class="colDialog dark">
+        <ColorPicker bind:rgb position="responsive" isDialog={false} isDark={true} textInputModes={['rgb']}/>
+    </div>
+    <div class="align-items-center justify-content-between">
+        <button class="btn btn-primary" onclick={() => updateItemRGB()} >OK</button>
+    </div>
+</dialog>
 <dialog bind:this={srchDialog}>
     <div class="srchDialog">
         <SearchDialog {searchReturn}> </SearchDialog>

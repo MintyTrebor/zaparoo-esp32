@@ -71,7 +71,11 @@ export interface menu {
   exitMenuImg: string;
   exitMenuID: string;
   exitMenuText: string;
-  exitMenuTextColour: string;
+  exitMenuTextColour: {
+    r: number;
+    g: number;
+    b: number;
+  };
   exitMenuActionAudio: string;
   menuItems: Array<menuItem>;
 }
@@ -81,7 +85,11 @@ export interface menuItem {
     itemImage: string;
     itemAudio: string;
     itemText: string;
-    itemTextColour: string;
+    itemTextColour: {
+      r: number;
+      g: number;
+      b: number;
+    };
     itemActionType: string;
     itemActionData: string;
     itemActionAudio: string;
