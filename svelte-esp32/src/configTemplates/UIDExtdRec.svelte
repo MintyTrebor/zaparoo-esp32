@@ -146,16 +146,12 @@
 
     function showCP(colObject: any, menuItmId: string){
         currMenuItemID = menuItmId;
-        // rgb.r = colObject.r;
-        // rgb.g = colObject.g;
-        // rgb.b = colObject.b;
         showColPicker.showModal();
     }
 
     function searchReturn(srchResult: any): void{
         currSrchResult = srchResult.selectedGame;
         srchDialog.close("true")
-        console.log("srchres: ", currSrchResult);
         let tmpArr = uidFJson.menus.filter((item: {menuID: string}) => (item.menuID == currSelMenuID));
             if(tmpArr.length > 0){
                 let tmpMenu: menu = tmpArr[0];
@@ -180,8 +176,6 @@
                     tmpItem.itemTextColour.b = rgb.b;
                 }
             }
-            console.log("curr json: ", uidFJson);
-            return true;
     }
 
     function colButtSet(ItmRGB: any){

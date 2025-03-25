@@ -45,7 +45,7 @@ ScreenManager scrnMan;
 InputManager inpMan;
 DeviceManager devMan;
 PowerManager pwrMan;
-XPowersPPM PPM;
+XPowersPPM xpPPM;
 BQ27220 bq27220;
 BQ27220BatteryStatus bqBatt;
 TaskHandle_t battery_handle;
@@ -614,10 +614,12 @@ void setup() {
   isPN532 = true;
   //Battery&PowerManagement
   if(pmu_ret){
-    if(PPM.init(Wire, i2c_sda, i2c_scl, BOARD_I2C_ADDR_3)){
+    if(xpPPM.init(Wire, i2c_sda, i2c_scl, BOARD_I2C_ADDR_3)){
       Serial.println("Battery Initailising");
-      pwrMan.init(&PPM);
       bq27220.init();
+      pwrMan.init(&xpPPM);
+      pwrMan.initCharging();
+      
       xTaskCreate(battery_task, "battery_task", 1024 * 2, NULL, 4, &battery_handle);
 
     }
@@ -784,14 +786,17 @@ void rotary(void *pvParameters) {
 void battery_task(void *pvParameters) {
   while(1){
     bq27220.getBatteryStatus(&bqBatt);
-    // Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    // Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging()));
+    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging() ? "Charging" : "Discharging"));
+    Serial.println("Batt Charge: " + String(bq27220.getRemainingCapacity()));
     if(bq27220.getStateOfCharge() < 90 && !bq27220.getIsCharging()){
+      Serial.println("Triggered Charge");
       pwrMan.initCharging();
-    } else {
+    } else if(bq27220.getStateOfCharge() > 90 && bq27220.getIsCharging()){
+      Serial.println("Triggered Stop Charge");
       pwrMan.stopCharging();
     }
-    delay(10000);
+    delay(30000);
   }
 }
 #endif
