@@ -51,6 +51,10 @@ export default defineConfig({
         target: getBackendHttp(), // Backend server URL
         changeOrigin: true, // Adjust the `Host` header to match the target,
       },
+      '/saveUIDFile': {
+        target: getBackendHttp(), // Backend server URL
+        changeOrigin: true, // Adjust the `Host` header to match the target,
+      },
     },
   },
 });

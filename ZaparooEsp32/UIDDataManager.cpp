@@ -119,6 +119,7 @@ void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument updateDataJ
     uidFile = LittleFS.open(filePath, FILE_WRITE);
   }
   serializeJson(updateDataJson, tmpJson);
+  Serial.println("updateUidFileJson: " + tmpJson);
   uidFile.print(tmpJson);
   uidFile.close();
 }

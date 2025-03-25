@@ -101,14 +101,28 @@ export class UIDUtils{
     }
 
     static saveUIDFileJson(fileData: UIDFileJson){
-        let newCMD = this.getBlankESPMsg();
-        newCMD.cmd = "saveUIDFileJson";
-        newCMD.data = {
+        console.log("i'm here")
+        // let newCMD = this.getBlankESPMsg();
+        // newCMD.cmd = "saveUIDFileJson";
+        // newCMD.data = {
+        //     UIDstr: this.currentScannedUID,
+        //     fileJson: fileData
+        // }
+        // EspUtils.sendMessage(newCMD);
+        // LogUtils.notify("UID Control File Saved");
+        let newCMD = {
             UIDstr: this.currentScannedUID,
             fileJson: fileData
         }
-        EspUtils.sendMessage(newCMD);
-        LogUtils.notify("UID Control File Saved");
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/saveUIDFile", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+            console.log(xhr.responseText);
+            }
+        };
+        xhr.send(JSON.stringify(newCMD));
     }
 
     static partialUpdUIDFileJson(currUID: string, aLaunchP: string | null, aRemoveP: string | null, launchImgP: string | null){

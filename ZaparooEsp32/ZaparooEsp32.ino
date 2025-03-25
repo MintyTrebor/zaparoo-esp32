@@ -147,6 +147,7 @@ void cmdClients(JsonDocument& cmdJson) {
 
 void onEvent(AsyncWebSocket* server, AsyncWebSocketClient* client, AwsEventType type,
              void* arg, uint8_t* data, size_t len) {
+  
   switch (type) {
     case WS_EVT_CONNECT:
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
@@ -469,8 +470,9 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
   } else if (command == "ping") {
       notifyClients("KeepAlive", "log");
   } else if (command == "saveUIDFileJson") {
-      notifyClients("Saving UID File Json", "log");
+      notifyClients("Saving UID File Json", "log");      
       String tmpUID = root["data"]["UIDstr"].as<String>();
+      Serial.println("Saving UID File Json: " + tmpUID);
       JsonDocument data = root["data"]["fileJson"];
       UidDM.updateUidFileJson(tmpUID.c_str(), data);
   } else if (command == "partialUpdUidFileJson") {
@@ -711,6 +713,18 @@ void setup() {
         }
     }
   });
+  
+  server.on("/saveUIDFile", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL, [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+       String jsonBody(reinterpret_cast<char*>(data), len);
+      Serial.println("jsonBody: " + jsonBody);
+      JsonDocument jsonFileData;
+      DeserializationError error = deserializeJson(jsonFileData, jsonBody);
+      String tmpUID = jsonFileData["UIDstr"].as<String>();
+      Serial.println("Saving UID File Json: " + tmpUID);
+      JsonDocument mainData = jsonFileData["fileJson"];
+      UidDM.updateUidFileJson(tmpUID.c_str(), mainData);
+      request->send(200);
+  });  
 
   if (feedback.sdCardEnabled) {
     Serial.println("SD CARD MODE");

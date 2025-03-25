@@ -52,12 +52,6 @@
     });
     const handleSubmit = (event: Event) => {
         event.preventDefault();
-        const updRec = UIDUtils.getBlankFileJson();
-        updRec.launchAudio = CommonUtils.validateAudioPath(uidFJson.launchAudio);
-        updRec.removeAudio = CommonUtils.validateAudioPath(uidFJson.removeAudio);
-        updRec.launchImg = CommonUtils.validateAudioPath(uidFJson.launchImg);
-        updRec.launchImgMenuID = uidFJson.launchImgMenuID;
-        
         let i: any = 0;
         for(i in uidFJson.menus){
             uidFJson.menus[i].exitMenuImg = CommonUtils.validateAudioPath(uidFJson.menus[i].exitMenuImg);
@@ -70,8 +64,12 @@
             }
             
 
-        }        
-        updRec.menus = uidFJson.menus;
+        }  
+        uidFJson.launchAudio = CommonUtils.validateAudioPath(uidFJson.launchAudio);
+        uidFJson.removeAudio = CommonUtils.validateAudioPath(uidFJson.removeAudio);
+        uidFJson.launchImg = CommonUtils.validateAudioPath(uidFJson.launchImg);
+        let updRec = JSON.parse(JSON.stringify(uidFJson));
+        console.log("savefilejson: ", updRec)
         UIDUtils.saveUIDFileJson(updRec);
     }
     onMount(()=>{
@@ -376,7 +374,7 @@
     <div class="colDialog dark">
         <ColorPicker bind:rgb position="responsive" isDialog={false} isDark={true} textInputModes={['rgb']}/>
     </div>
-    <div class="align-items-center justify-content-between">
+    <div class="align-items-center justify-content-between text-center mb-2 col-12">
         <button class="btn btn-primary" onclick={() => updateItemRGB()} >OK</button>
     </div>
 </dialog>
