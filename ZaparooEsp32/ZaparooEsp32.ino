@@ -91,6 +91,7 @@ bool serialOnly = false;
 String steamIp = "steamOS.local";
 String zapIp = "mister.local";
 String lastSerialCommand = "";
+String postBufferTxt = "";
 
 //Prototypes
 void notifyClients(const String& txtMsgToSend, const String& msgType);
@@ -715,15 +716,17 @@ void setup() {
   });
   
   server.on("/saveUIDFile", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL, [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
-       String jsonBody(reinterpret_cast<char*>(data), len);
-      Serial.println("jsonBody: " + jsonBody);
+    String jsonBody(reinterpret_cast<char*>(data), len);
+    postBufferTxt = postBufferTxt + jsonBody;    
+    if(postBufferTxt.length() == total){
       JsonDocument jsonFileData;
-      DeserializationError error = deserializeJson(jsonFileData, jsonBody);
+      DeserializationError error = deserializeJson(jsonFileData, postBufferTxt);
       String tmpUID = jsonFileData["UIDstr"].as<String>();
-      Serial.println("Saving UID File Json: " + tmpUID);
       JsonDocument mainData = jsonFileData["fileJson"];
       UidDM.updateUidFileJson(tmpUID.c_str(), mainData);
-      request->send(200);
+      postBufferTxt = "";
+    }
+    request->send(200);
   });  
 
   if (feedback.sdCardEnabled) {
