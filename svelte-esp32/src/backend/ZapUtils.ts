@@ -4,7 +4,7 @@ import {v4 as uuidv4} from 'uuid';
 import { EspUtils, } from "./EspUtils";
 import { LogUtils } from "./LogUtils";
 import { UIDUtils } from "../backend/UIDUtils";
-import type { UIDExtdRecord } from "../types/ConfigData";
+
 export class ZapUtils{
     private static retSystems: Writable<zapSystems> = writable({} as zapSystems);
     private static srchResults: Writable<zapSearchResults> = writable({} as zapSearchResults);

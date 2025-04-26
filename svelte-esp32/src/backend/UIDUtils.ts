@@ -1,13 +1,14 @@
 import { writable, type Readable, type Writable } from "svelte/store";
-import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage, UIDFileJson, menuItem, menu } from "../types/ConfigData";
+import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage, UIDFileJson, menuItem, menu, zapScript, zapScriptCmd, client, audio, display, colour, input, button, action, zapScriptPickerItem } from "../types/ConfigData";
 import { EspUtils } from "./EspUtils";
 import { LogUtils } from "./LogUtils";
+import {v4 as uuidv4} from 'uuid';
 
 export class UIDUtils{
     private static currentUIDData: UIDExtdRecords;
     private static currentUIDRecord: Writable<UIDExtdRecord> = writable({} as UIDExtdRecord);
     private static isUIDModeEnabled= false;
-    private static currentScannedFileJson: Writable<UIDFileJson> = writable({} as UIDFileJson);
+    private static currentScannedFileJson: Writable<zapScript> = writable({} as zapScript);
     private static currentScannedUID: string;
 
 
@@ -24,11 +25,11 @@ export class UIDUtils{
         if(!EspUtils.sendMessage(newCMD)){
             setTimeout(()=> this.setUIDMode(value), 2000);
         }
-        if(!this.isUIDModeEnabled){
-            let currData: UIDFileJson = this.getBlankFileJson();
-            this.currentScannedFileJson.set(currData);
-            this.currentScannedUID = "";
-        }
+        // if(!this.isUIDModeEnabled){
+        //     let currData: zapScript = this.getNewUIDFileStructure();
+        //     this.currentScannedFileJson.set(currData);
+        //     this.currentScannedUID = "";
+        // }
     }
     
     static getBlank(): UIDExtdRecord{
@@ -39,12 +40,166 @@ export class UIDUtils{
         return this.currentUIDRecord;
     }
 
-    static getNewMenuItem(): menuItem{
+    static getBlankMenuItem(): menuItem{
         return {} as menuItem;
     }
 
     static getNewMenu(): menu{
         return {} as menu;
+    }
+
+    static getNewZapScript(): zapScript {
+        let tmpObj: zapScript = {
+            zapScript: 1,
+            cmds:[]
+        }
+        return tmpObj;
+    }
+
+    static getNewAudio(): audio {
+        let tmpObj: audio = {
+            removeAudioPath: "",
+            launchAudioPath: "",
+            onClickAudioPath: ""
+        }
+        return tmpObj;
+    }
+
+    static getNewDisplay(): display {
+        let tmpObj: display = {
+            imgPath: "",
+            displayText: "",
+            textColour: this.getNewColour(),
+            screenColour: this.getNewColour(),
+            fontSize: 16,
+            fontNumber: 2
+        }
+        return tmpObj;
+    }
+
+    static getNewZapScriptCmd(): zapScriptCmd {
+        let tmpCmd: zapScriptCmd = this.buildNewZapScriptCmd();
+        tmpCmd.id = uuidv4();
+        return tmpCmd;
+    }
+
+    static geBlankZapScriptCmd(): zapScriptCmd {
+        return {} as zapScriptCmd;
+    }
+
+    static getNewPickerItem(): zapScriptPickerItem {
+        let tmpCmd: zapScriptPickerItem = this.buildNewPickerItem();
+        tmpCmd.id = uuidv4();
+        return tmpCmd;
+    }
+
+    private static buildNewZapScriptCmd(): zapScriptCmd {
+        let tmpObj: zapScriptCmd = {
+            id: uuidv4(),
+            name: "",
+            cmd: "",
+            args: {
+                zapscript: "",
+                items: [],
+                pickers:[],
+                client: []
+            }
+        }
+        return tmpObj;
+    }
+
+    private static buildNewPickerItem(): zapScriptPickerItem {
+        let tmpObj: zapScriptPickerItem = {
+            id: uuidv4(),
+            name: "",
+            cmd: "",
+            args: {
+                zapscript: "",
+                client: []
+            }
+        }
+        return tmpObj;
+    }
+
+    static getBlankZapScriptCmd(): zapScriptCmd {
+        return {} as zapScriptCmd;
+    }
+
+    static getNewClient(): client {
+        let tmpObj: client = {
+            type: "",
+            args: {
+                audio: this.getNewAudio(),
+                display: this.getNewDisplay(),
+                input: this.getNewInput()
+            }
+        }
+        return tmpObj;
+    }
+
+    static getNewColour(): colour {
+        let tmpObj: colour = {
+            r: 0,
+            g: 0,
+            b: 0
+        }
+        return tmpObj;
+    }
+
+    static getNewInput(): input {
+        let tmpObj: input = {
+            buttons: []
+        }
+        return tmpObj;
+    }
+
+    static getNewButton(): button {
+        let tmpObj: button = {
+            buttonID: "",
+            args: {
+                actions: []
+            }
+        }
+        return tmpObj;
+    }
+
+    static getNewAction(): action {
+        let tmpObj: action = {
+            cmd: "",
+            args:{
+              uiPickerID: "",
+              cmd: "",
+              audio: this.getNewAudio()
+            }
+        }
+        return tmpObj;
+    }
+
+    static getNewUIDFileStructure(): zapScript {
+        let tmpUIDFile: zapScript = this.getNewZapScript();
+        let tmpClient: client = this.getNewClient();
+        let tmpBtn: button = this.getNewButton();
+        let tmpAction: action = this.getNewAction();
+        tmpBtn.args.actions.push(tmpAction);
+        tmpBtn.buttonID = "rotary";
+        tmpClient.type = "reader";
+        tmpClient.args.input.buttons.push(tmpBtn);
+        tmpUIDFile.cmds.push(this.getNewZapScriptCmd());
+        tmpUIDFile.cmds[0].args.client?.push(tmpClient);
+        return tmpUIDFile;
+    }
+
+    static getNewMenuItem(): zapScriptCmd {
+        let tmpUIDFile: zapScriptCmd = this.getNewZapScriptCmd();
+        let tmpClient: client = this.getNewClient();
+        let tmpBtn: button = this.getNewButton();
+        let tmpAction: action = this.getNewAction();
+        tmpBtn.args.actions.push(tmpAction);
+        tmpBtn.buttonID = "rotary";
+        tmpClient.type = "reader";
+        tmpClient.args.input.buttons.push(tmpBtn);
+        tmpUIDFile.args.client.push(tmpClient);
+        return tmpUIDFile;
     }
 
     static processUIDExtData(UIDData: UIDExtdRecsMessage){
@@ -90,26 +245,17 @@ export class UIDUtils{
     }
 
     
-    static processUIDFileJson(fileData: UIDFileJson, currUID: string){
+    static processUIDFileJson(fileData: zapScript, currUID: string){
         this.currentScannedUID = currUID;
-        let currData: UIDFileJson = fileData;
+        let currData: zapScript = fileData;
         this.currentScannedFileJson.set(currData);
     }
 
-    static scannedUIDFileJson(): Readable<UIDFileJson> {
+    static scannedUIDFileJson(): Readable<zapScript> {
         return this.currentScannedFileJson;
     }
 
-    static saveUIDFileJson(fileData: UIDFileJson){
-        console.log("i'm here")
-        // let newCMD = this.getBlankESPMsg();
-        // newCMD.cmd = "saveUIDFileJson";
-        // newCMD.data = {
-        //     UIDstr: this.currentScannedUID,
-        //     fileJson: fileData
-        // }
-        // EspUtils.sendMessage(newCMD);
-        // LogUtils.notify("UID Control File Saved");
+    static saveUIDFileJson(fileData: zapScript){
         let newCMD = {
             UIDstr: this.currentScannedUID,
             fileJson: fileData

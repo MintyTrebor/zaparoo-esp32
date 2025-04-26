@@ -470,12 +470,6 @@ void handleWebSocketMessage(void* arg, uint8_t* data, size_t len) {
       handleResetRequest();
   } else if (command == "ping") {
       notifyClients("KeepAlive", "log");
-  } else if (command == "saveUIDFileJson") {
-      notifyClients("Saving UID File Json", "log");      
-      String tmpUID = root["data"]["UIDstr"].as<String>();
-      Serial.println("Saving UID File Json: " + tmpUID);
-      JsonDocument data = root["data"]["fileJson"];
-      UidDM.updateUidFileJson(tmpUID.c_str(), data);
   } else if (command == "partialUpdUidFileJson") {
       notifyClients("Updating UID File Json", "log");
       String tmpUID = root["data"]["UIDstr"].as<String>();
@@ -717,13 +711,10 @@ void setup() {
   
   server.on("/saveUIDFile", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL, [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
     String jsonBody(reinterpret_cast<char*>(data), len);
-    postBufferTxt = postBufferTxt + jsonBody;    
+    postBufferTxt = postBufferTxt + jsonBody;
+    //Serial.println("Rec Data: " + postBufferTxt);    
     if(postBufferTxt.length() == total){
-      JsonDocument jsonFileData;
-      DeserializationError error = deserializeJson(jsonFileData, postBufferTxt);
-      String tmpUID = jsonFileData["UIDstr"].as<String>();
-      JsonDocument mainData = jsonFileData["fileJson"];
-      UidDM.updateUidFileJson(tmpUID.c_str(), mainData);
+      UidDM.updateUidFileJson(postBufferTxt);
       postBufferTxt = "";
     }
     request->send(200);

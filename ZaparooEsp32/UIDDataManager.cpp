@@ -21,11 +21,35 @@ void UIDDataManager::init(bool sdEnabled){
 
 void UIDDataManager::getUidFileDefaultJson(JsonDocument& fdJson){
   JsonDocument blankJson;
-  blankJson["launchAudio"] = "";
-  blankJson["removeAudio"] = "";
-  blankJson["launchImg"] = "";
-  blankJson["launchImgMenuID"] = "";
-  blankJson.createNestedArray("menus");
+  UUID uuid;
+  blankJson["zapScript"] = 1;
+  blankJson.createNestedArray("cmds");
+  blankJson["cmds"][0]["id"] = uuid.toCharArray();
+  blankJson["cmds"][0]["name"] = "";
+  blankJson["cmds"][0]["cmd"] = "evaluate";
+  blankJson["cmds"][0]["args"]["zapscript"] = "";
+  blankJson["cmds"][0]["args"].createNestedArray("client");
+  blankJson["cmds"][0]["args"]["client"][0]["type"] = "reader";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["launchAudioPath"] = "";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"] = "";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"] = "";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["displayTxt"] = "";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["r"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["g"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["b"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["r"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["g"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["b"] = 0;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontSize"] = 16;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontNumber"] = 2;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["input"].createNestedArray("buttons");
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["input"]["buttons"][0]["buttonID"] = "rotary";
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["input"]["buttons"][0]["args"].createNestedArray("actions");
+  // blankJson["launchAudio"] = "";
+  // blankJson["removeAudio"] = "";
+  // blankJson["launchImg"] = "";
+  // blankJson["launchImgMenuID"] = "";
+  // blankJson.createNestedArray("menus");
   fdJson = blankJson;
 }
 
@@ -100,26 +124,40 @@ void UIDDataManager::partialUpdUidFileJson(const char* UID, JsonDocument updateD
   }else{
     uidFile = LittleFS.open(filePath, FILE_WRITE);
   }
-  blankJson["launchAudio"] = updateDataJson["launchAudio"];
-  blankJson["removeAudio"] = updateDataJson["removeAudio"];
-  blankJson["launchImg"] = updateDataJson["launchImg"];
-  blankJson["launchImgMenuID"] = updateDataJson["launchImgMenuID"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["launchAudioPath"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["launchAudioPath"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["displayTxt"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["displayTxt"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["r"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["r"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["g"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["g"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["b"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["b"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["r"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["r"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["g"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["g"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["b"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["b"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontSize"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontSize"];
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontNumber"] = updateDataJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontNumber"];
   serializeJson(blankJson, tmpJson);
   uidFile.print(tmpJson);
   uidFile.close();
 }
 
-void UIDDataManager::updateUidFileJson(const char* UID, JsonDocument updateDataJson){
+void UIDDataManager::updateUidFileJson(String updateDataJson){
+  //Serial.println("updateUidFileJson: " + updateDataJson);
   File uidFile;
-  String tmpJson = "";
-  String filePath = String(UID_DATA_DIR) + "/" + String(UID) + ".json";
+  JsonDocument jsonFileData;
+  DeserializationError error = deserializeJson(jsonFileData, updateDataJson);
+  String tmpUID = jsonFileData["UIDstr"].as<String>();
+  //JsonDocument mainData = jsonFileData["fileJson"];
+  //String tmpJson = "";
+  String filePath = String(UID_DATA_DIR) + "/" + tmpUID + ".json";
   if(SDCardEnabled){
     uidFile = SD.open(filePath, FILE_WRITE);
   }else{
     uidFile = LittleFS.open(filePath, FILE_WRITE);
   }
-  serializeJson(updateDataJson, tmpJson);
-  Serial.println("updateUidFileJson: " + tmpJson);
+  String tmpJson = "";
+  serializeJson(jsonFileData["fileJson"], tmpJson);
+  Serial.println("tmpJson: " + tmpJson);
   uidFile.print(tmpJson);
   uidFile.close();
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include "ZaparooEsp32.hpp"
 #include "InputManager.h"
+//#include "mainMenu.h"
 
 //String ZAP_URL = "ws://<replace>:7497" + String(ZaparooLaunchApi::wsPath);
 
@@ -27,39 +28,22 @@ void InputManager::init(ScreenManager* scrnMgr, RotaryEncoder* encdr, FeedbackMa
 
 void InputManager:: getMainMenu(JsonDocument& menuJson){
   JsonDocument blankJson;
-  blankJson["menus"][0]["menuID"] = "9999";
-  //itemID 1 = Now Playing
-  blankJson["menus"][0]["menuItems"][0]["itemID"] = "1";
-  blankJson["menus"][0]["menuItems"][0]["itemImage"] = "dispNowPlaying";
-  blankJson["menus"][0]["menuItems"][0]["itemAudio"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemText"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionType"] = "menu";
-  blankJson["menus"][0]["menuItems"][0]["itemActionData"] = "";
-  blankJson["menus"][0]["menuItems"][0]["itemActionAudio"] = "";
-  //itemID 2 = Sleep
-  blankJson["menus"][0]["menuItems"][1]["itemID"] = "2";
-  blankJson["menus"][0]["menuItems"][1]["itemImage"] = "dispGotoSleep";
-  blankJson["menus"][0]["menuItems"][1]["itemAudio"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemText"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][1]["itemActionType"] = "internal";
-  blankJson["menus"][0]["menuItems"][1]["itemActionData"] = "doDeepSleep";
-  blankJson["menus"][0]["menuItems"][1]["itemActionAudio"] = "";
-  //itemID 3 = Power Off
-  blankJson["menus"][0]["menuItems"][2]["itemID"] = "3";
-  blankJson["menus"][0]["menuItems"][2]["itemImage"] = "dispPowerOff";
-  blankJson["menus"][0]["menuItems"][2]["itemAudio"] = "";
-  blankJson["menus"][0]["menuItems"][2]["itemText"] = "";
-  blankJson["menus"][0]["menuItems"][2]["itemTextColour"] = "";
-  blankJson["menus"][0]["menuItems"][2]["itemActionType"] = "internal";
-  blankJson["menus"][0]["menuItems"][2]["itemActionData"] = "doShutdown";
-  blankJson["menus"][0]["menuItems"][2]["itemActionAudio"] = "";
-  menuJson = blankJson;
+  const char *mainMenuJson = 
+  #include "mainMenu.h"
+  ;
+  String tmpJsonStr = String(mainMenuJson);
+  //Serial.println("Main Menu JSON : " + tmpJsonStr);
+  DeserializationError error = deserializeJson(blankJson, tmpJsonStr);
+  if(!error){
+    menuJson = blankJson;
+    return;
+  }else{
+    Serial.println("Bad Menu JSON");
+  }
 }
 
 void InputManager::setCurrMenu(String menuID){
-  //Serial.println("SettingCurrMenu To: " + String(menuID));
+  Serial.println("SettingCurrMenu To: " + String(menuID));
   JsonDocument tmpJson;
   currMenuJson = {};
   if(menuID == 0){
@@ -68,24 +52,24 @@ void InputManager::setCurrMenu(String menuID){
     currMenuItemID = menuID;
   }
   if(currMenuItemID == "9999"){
-    getMainMenu(tmpJson);
-    currMenuJson = tmpJson["menus"][0];
-    currMenuItemCount = currMenuJson["menuItems"].size();
+    getMainMenu(currMenuJson);
+    currMenuItemCount = currMenuJson["args"]["items"].size();
+    Serial.println("currMenuItemCount: " + String(currMenuItemCount));
   }else {    
-    getMenu(menuID, tmpJson);
-    currMenuJson = tmpJson;
+    getMenu(menuID, currMenuJson);
+    // currMenuJson = tmpJson;
     //add the exit menu data into the menuitems array
-    JsonDocument exitMenuItem;
-    uidDataMan->getUidFileMenuItemJson(exitMenuItem);
-    exitMenuItem["itemID"] = "exitMenu";
-    exitMenuItem["itemImage"] = currMenuJson["exitMenuImg"];
-    exitMenuItem["itemText"] = currMenuJson["exitMenuText"];
-    exitMenuItem["itemTextColour"] = currMenuJson["exitMenuTextColour"];
-    exitMenuItem["itemActionType"] = "menu";
-    exitMenuItem["itemActionData"] = currMenuJson["exitMenuID"];
-    exitMenuItem["itemActionAudio"] = currMenuJson["exitMenuActionAudio"];
-    currMenuJson["menuItems"].add(exitMenuItem);
-    currMenuItemCount = currMenuJson["menuItems"].size();
+    // JsonDocument exitMenuItem;
+    // uidDataMan->getUidFileMenuItemJson(exitMenuItem);
+    // exitMenuItem["itemID"] = "exitMenu";
+    // exitMenuItem["itemImage"] = currMenuJson["exitMenuImg"];
+    // exitMenuItem["itemText"] = currMenuJson["exitMenuText"];
+    // exitMenuItem["itemTextColour"] = currMenuJson["exitMenuTextColour"];
+    // exitMenuItem["itemActionType"] = "menu";
+    // exitMenuItem["itemActionData"] = currMenuJson["exitMenuID"];
+    // exitMenuItem["itemActionAudio"] = currMenuJson["exitMenuActionAudio"];
+    // currMenuJson["menuItems"].add(exitMenuItem);
+    currMenuItemCount = currMenuJson["args"]["items"].size();
   }  
   if(currMenuItemCount > 0){currMenuItemCount--;}
   currMenuItemPos = 0;
@@ -207,16 +191,17 @@ void InputManager::doRotaryTurn(int currDir){
 }
 
 void InputManager::showCurrMenuItem(){
-  currMenuItemJson = currMenuJson["menuItems"][currMenuItemPos];
-  String tmpImgPath = currMenuItemJson["itemImage"].as<String>();
-  String tmpTxtStr = currMenuItemJson["itemText"].as<String>();
-  JsonDocument tmpTxtRGB = currMenuItemJson["itemTextColour"];
+  currMenuItemJson = currMenuJson["args"]["items"][currMenuItemPos];
+  String tmpImgPath = currMenuItemJson["args"]["client"][0]["args"]["display"]["imgPath"].as<String>();
+  String tmpTxtStr = currMenuItemJson["args"]["client"][0]["args"]["display"]["displayText"].as<String>();
+  JsonDocument tmpTxtRGB = currMenuItemJson["args"]["client"][0]["args"]["display"]["textColour"];
   JsonDocument tmpScrnRBG;
   tmpScrnRBG["r"] = 255;
   tmpScrnRBG["g"] = 255;
   tmpScrnRBG["b"] = 255;
   const char* tmpTextChar = tmpTxtStr.c_str();
-  Serial.println("String 4 Scrn: " + currMenuItemJson["itemText"].as<String>());
+  Serial.println("Menu Img Path: " + currMenuItemJson["args"]["client"][0]["args"]["display"]["imgPath"].as<String>());
+  Serial.println("Menu Scrn Text: " + currMenuItemJson["args"]["client"][0]["args"]["display"]["displayText"].as<String>());
   //do default menu items check
   if(tmpImgPath == "dispNowPlaying"){
     screenManager->dispNowPlaying();

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, UIDExtdRecord, UIDFileJson } from '../types/ConfigData';
+  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, UIDExtdRecord, UIDFileJson, zapScript } from '../types/ConfigData';
   import { ZapUtils } from '../backend/ZapUtils';
   import { CommonUtils } from '../backend/CommonUtils';
   import { EspUtils } from "../backend/EspUtils";
@@ -59,7 +59,7 @@
     }
   }
 
-  function tempUID(currUIDrec: UIDFileJson){
+  function tempUID(currUIDrec: zapScript){
     if(lastUIDVal != UIDUtils.currScannedUID()){
       lastUIDVal = UIDUtils.currScannedUID();
     }

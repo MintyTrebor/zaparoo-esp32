@@ -1,5 +1,6 @@
 #ifndef ZAPAROO_ESP32_H
   #define ZAPAROO_ESP32_H
+  #define ARDUINOJSON_DEFAULT_NESTING_LIMIT 30
 
   //*********************Reguired Configuration******************************
   

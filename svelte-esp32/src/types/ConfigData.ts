@@ -175,3 +175,80 @@ export interface mapping {
 export interface mappings {
   mappings: Array<mapping>;
 }
+
+export interface zapScript {
+  zapScript: number;
+  cmds: Array<zapScriptCmd>;
+}
+
+export interface zapScriptCmd {
+  id: string;
+  name: string;
+  cmd: string;
+  args: {
+    zapscript: string;
+    items:Array<zapScriptCmd>;
+    pickers:Array<zapScriptCmd>;
+    client: Array<client>;
+  };
+}
+
+export interface zapScriptPickerItem {
+  id: string;
+  name: string;
+  cmd: string;
+  args: {
+    zapscript: string;
+    client: Array<client>;
+  };
+}
+
+export interface client {
+  type: string;
+  args: {
+    audio: audio;
+    display:display;
+    input: input;
+  };
+}
+
+export interface audio  {
+  launchAudioPath: string;
+  removeAudioPath: string;
+  onClickAudioPath: string;
+};
+
+export interface input {
+  buttons: Array<button>;
+}
+
+export interface display {
+  imgPath: string;
+  displayText: string;
+  textColour: colour;
+  screenColour: colour;
+  fontNumber: number;
+  fontSize: number;
+};
+
+export interface colour {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface button {
+  buttonID: string;
+  args: {
+    actions: Array<action>
+  }
+}
+
+export interface action {
+  cmd: string;
+  args:{
+    uiPickerID: string;
+    cmd: string
+    audio: audio;
+  }
+}
