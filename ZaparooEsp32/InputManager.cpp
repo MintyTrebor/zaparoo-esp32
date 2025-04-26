@@ -118,24 +118,22 @@ void InputManager::getMenu(String menuID, JsonDocument& menuJson){
 void InputManager::doRotaryButton(){
   String tmpActionType = currMenuItemJson["itemActionType"].as<String>();
   String tmpActionData = currMenuItemJson["itemActionData"].as<String>();
-  String tmpMenuID = currMenuItemJson["itemID"].as<String>();
+  String tmpActionCMD = currMenuItemJson["cmd"].as<String>();
+  String tmpMenuID = currMenuItemJson["id"].as<String>();
   String tmpAA = currMenuItemJson["itemActionAudio"].as<String>();
   const char* tmpActionAudio = tmpAA.c_str();
 
   //Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
 
   //do default menu items check
-  if(tmpMenuID == "1" && defSubMenuID.length() > 0){
+  if(tmpMenuID == "9999-1" && defSubMenuID.length() > 0){
     setCurrMenu(defSubMenuID);
     currMenuItemPos = 0;
     showCurrMenuItem();
-  }else if(tmpActionType == "internal"){
-    if(tmpActionData == "doDeepSleep"){
-      doDeepSleep();
-    }
-    if(tmpActionData == "doShutdown"){
-      powerManager->doShutdown();
-    }
+  }else if(tmpMenuID == "9999-2"){
+    doDeepSleep();
+  }else if(tmpMenuID == "9999-3"){
+    powerManager->doShutdown();
   }else if(tmpActionType == "menu" && tmpActionData.length() > 0){
     //Serial.println("Goto Menu : "  + tmpActionData);
     setCurrMenu(tmpActionData);
