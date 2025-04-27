@@ -116,15 +116,10 @@ void InputManager::getMenu(String menuID, JsonDocument& menuJson){
 }
 
 void InputManager::doRotaryButton(){
-  String tmpActionType = currMenuItemJson["itemActionType"].as<String>();
-  String tmpActionData = currMenuItemJson["itemActionData"].as<String>();
-  String tmpActionCMD = currMenuItemJson["cmd"].as<String>();
+  String tmpActionType = currMenuItemJson["cmd"].as<String>();
+  String tmpActionData = currMenuItemJson["args"]["zapscript"].as<String>();
   String tmpMenuID = currMenuItemJson["id"].as<String>();
-  String tmpAA = currMenuItemJson["itemActionAudio"].as<String>();
-  const char* tmpActionAudio = tmpAA.c_str();
-
   //Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
-
   //do default menu items check
   if(tmpMenuID == "9999-1" && defSubMenuID.length() > 0){
     setCurrMenu(defSubMenuID);
@@ -134,20 +129,38 @@ void InputManager::doRotaryButton(){
     doDeepSleep();
   }else if(tmpMenuID == "9999-3"){
     powerManager->doShutdown();
-  }else if(tmpActionType == "menu" && tmpActionData.length() > 0){
+  }else if(tmpActionType == "evaluate" && tmpActionData.length() > 0){
     //Serial.println("Goto Menu : "  + tmpActionData);
     setCurrMenu(tmpActionData);
     currMenuItemPos = 0;
     showCurrMenuItem();
-    doInputEventAudio(tmpActionAudio);
-  }else if(tmpActionType == "launchGame" && tmpActionData.length() > 0){
-    //Serial.println("Launch Game From Menu Click: "  + tmpActionData);
-    sendToZap(tmpActionData);
-    doInputEventAudio(tmpActionAudio);    
-  }else if(tmpActionType == "launchScript" && tmpActionData.length() > 0){
-    //Serial.println("Launch Script From Menu Click: " + tmpActionData);
-    sendToZap(tmpActionData);
-    doInputEventAudio(tmpActionAudio);
+    //doInputEventAudio(tmpActionAudio);
+  }else if((tmpActionType == "evaluate" && tmpActionData.length() == 0) || (tmpActionType == "evaluate.client" && tmpActionData.length() == 0)){
+    //Serial.println("Do Action From Menu Click: "  + tmpActionData);
+    JsonDocument tmpJson = currMenuItemJson["args"]["client"][0]["args"]["input"]["buttons"][0]["args"];
+    if(tmpJson["actions"].is<JsonArray>() && !tmpJson["actions"].isNull()){ 
+      for (JsonObject action : tmpJson["actions"].as<JsonArray>()) {
+        String uiPickID = action["args"]["uiPickerID"];
+        String actCmd = action["cmd"];
+        String actAudio = action["args"]["audio"]["onClickAudioPath"];
+        String actZapScr = action["args"]["zapscript"];
+        if(uiPickID.length() > 0 && actCmd == "ui.picker"){
+          setCurrMenu(uiPickID);
+          currMenuItemPos = 0;
+          showCurrMenuItem();
+          if(actAudio.length() > 0){
+            const char* tmpActionAudio = actAudio.c_str();
+            doInputEventAudio(tmpActionAudio);
+          }
+        }else if(actCmd == "evaluate" && actZapScr.length() > 0){
+          sendToZap(tmpActionData);
+          if(actAudio.length() > 0){
+            const char* tmpActionAudio = actAudio.c_str();
+            doInputEventAudio(tmpActionAudio);
+          }
+        }
+      }
+    }
   }else {
     Serial.println("Failed to find action");
   }

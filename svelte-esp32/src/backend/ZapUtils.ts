@@ -4,6 +4,8 @@ import {v4 as uuidv4} from 'uuid';
 import { EspUtils, } from "./EspUtils";
 import { LogUtils } from "./LogUtils";
 import { UIDUtils } from "../backend/UIDUtils";
+import { tick } from 'svelte';
+
 
 export class ZapUtils{
     private static retSystems: Writable<zapSystems> = writable({} as zapSystems);
@@ -357,42 +359,27 @@ export class ZapUtils{
         let newUUID = uuidv4();
         if(!aLaunchP){aLaunchP = ""};
         if(!aRemoveP){aRemoveP = ""};
-        let mapID:number|undefined =  0;
         let wscmd = {};
         let tmpMapping:mapping = this.getBlankMapping();                
-        let curMapRec = this.currMappings.mappings.filter((item: {pattern: string}) => (item.pattern == currUID));
-        if(curMapRec.length !== 0){
-            mapID = curMapRec[0].id;
-        }        
-        if (mapID != 0){
-            tmpMapping.id = Number(mapID),
-            tmpMapping.enabled = true,
-            tmpMapping.match = "exact",
-            tmpMapping.override = launchPath,
-            tmpMapping.pattern = currUID,
-            tmpMapping.type = "uid"
-            wscmd = {
-                jsonrpc: "2.0",
-                id: newUUID,
-                method: "mappings.update",
-                params: tmpMapping
-            };
-        }else {
-            tmpMapping.enabled = true,
-            tmpMapping.match = "exact",
-            tmpMapping.override = launchPath,
-            tmpMapping.pattern = currUID,
-            tmpMapping.type = "uid"
-            wscmd = {
-                jsonrpc: "2.0",
-                id: newUUID,
-                method: "mappings.new",
-                params: tmpMapping
-            };
-        }
+        
+        tmpMapping.enabled = true,
+        tmpMapping.match = "exact",
+        tmpMapping.override = launchPath.trim(),
+        tmpMapping.pattern = currUID,
+        tmpMapping.type = "uid"
+        wscmd = {
+            jsonrpc: "2.0",
+            id: newUUID,
+            method: "mappings.new",
+            params: tmpMapping
+        };
+        
         //console.log("wscmd: ", wscmd)
         this.zapSvsSocket.send(JSON.stringify(wscmd));
-        UIDUtils.partialUpdUIDFileJson(currUID, aLaunchP, aRemoveP, launchImgP);
+        console.log("CDevType: ", EspUtils.currDeviceType);
+        //if(EspUtils.currDeviceType == "Lilygo"){
+            tick().then(() =>{UIDUtils.partialUpdUIDFileJson(currUID, aLaunchP, aRemoveP, launchImgP, launchPath.trim())});
+        //}
         UIDUtils.setUIDMode(false); 
                
     }

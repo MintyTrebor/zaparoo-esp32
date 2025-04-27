@@ -495,7 +495,7 @@ void FeedbackManager::setUidMappings(ZaparooToken* obj) {
       obj->setRemoveAudio(uidFile["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"].as<String>().c_str());
       obj->setLaunchJPEG(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().c_str()); 
     }
-    if(uidFile["launchImg"].as<String>().length() > 0){
+    if(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().length() > 0){
       screenManager->setNowPlayingPath(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().c_str());
     }else {
       screenManager->setNowPlayingPath(nullptr);

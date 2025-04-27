@@ -11,6 +11,7 @@ export class EspUtils{
     private static intialLoad = false;
     private static updating = false;
     private static timerID: any = 0;
+    static currDeviceType: string = "";
     
     static initWebSocket() {
         console.log('Trying to open a WebSocket connection to ZAP ESP…');
@@ -66,6 +67,7 @@ export class EspUtils{
             case "ConfigData":
                 this.currentConfig.set((msgData as ConfigMessage).data)
                 LogUtils.notify(`Settings ${this.intialLoad ? "Updated" : "Loaded"}`);
+                this.currDeviceType = msgData.data.deviceType;
                 this.intialLoad = true;
                 break;
             case "getUIDExtdRec":

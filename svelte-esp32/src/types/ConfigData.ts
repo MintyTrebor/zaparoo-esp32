@@ -248,7 +248,7 @@ export interface action {
   cmd: string;
   args:{
     uiPickerID: string;
-    cmd: string
+    zapscript: string
     audio: audio;
   }
 }

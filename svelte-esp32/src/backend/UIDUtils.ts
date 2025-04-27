@@ -168,7 +168,7 @@ export class UIDUtils{
             cmd: "",
             args:{
               uiPickerID: "",
-              cmd: "",
+              zapscript: "",
               audio: this.getNewAudio()
             }
         }
@@ -270,20 +270,33 @@ export class UIDUtils{
         xhr.send(JSON.stringify(newCMD));
     }
 
-    static partialUpdUIDFileJson(currUID: string, aLaunchP: string | null, aRemoveP: string | null, launchImgP: string | null){
-        let newCMD = this.getBlankESPMsg();
-        newCMD.cmd = "partialUpdUidFileJson";
-        newCMD.data = {
+    private static saveSimpleUIDFileJson(fileData: zapScript, currUID: string){
+        let newCMD = {
             UIDstr: currUID,
-            fileJson: {
-                launchAudio: aLaunchP,
-                removeAudio: aRemoveP,
-                launchImg: launchImgP,
-                launchImgMenuID: null
-            }
+            fileJson: fileData
         }
-        EspUtils.sendMessage(newCMD);
-        LogUtils.notify("UID Control File Saved");
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/saveUIDFile", true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+            }
+        };
+        xhr.send(JSON.stringify(newCMD));
+    }
+
+    static partialUpdUIDFileJson(currUID: string, aLaunchP: string | null, aRemoveP: string | null, launchImgP: string | null, zScript: string){
+        if(!aLaunchP){aLaunchP = ""};
+        if(!aRemoveP){aRemoveP = ""};
+        if(!launchImgP){launchImgP = ""};
+        let tmpZSJ: zapScript = this.getNewUIDFileStructure();
+        tmpZSJ.cmds[0].cmd = "evaluate";
+        tmpZSJ.cmds[0].args.zapscript = zScript;
+        tmpZSJ.cmds[0].args.client[0].type = "reader";
+        tmpZSJ.cmds[0].args.client[0].args.audio.launchAudioPath = aLaunchP;
+        tmpZSJ.cmds[0].args.client[0].args.audio.removeAudioPath = aRemoveP;
+        tmpZSJ.cmds[0].args.client[0].args.display.imgPath = launchImgP;
+        this.saveSimpleUIDFileJson(tmpZSJ, currUID);
     }
 
     static getBlankFileJson(): UIDFileJson{
