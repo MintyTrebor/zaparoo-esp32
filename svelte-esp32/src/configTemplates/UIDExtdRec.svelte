@@ -163,7 +163,7 @@
                 currMainPickerID = "";
                 currMainPicker = UIDUtils.geBlankZapScriptCmd();
             }
-            if('client' in currFirstCmd){
+            if('client' in currFirstCmd.args){
                 let tmpClient = currFirstCmd.args.client.filter((item: {type: string}) => (item.type = "reader"));
                 if(tmpClient.length > 0){
                     currFirstCmdClientObject = tmpClient[0];
@@ -173,10 +173,6 @@
                     newCmd.type = "reader";
                     currFirstCmd.args.client.push(newCmd);
                 }
-            }else{
-                let newCmd: client = UIDUtils.getNewClient();
-                newCmd.type = "reader";
-                currFirstCmd.args.client.push(newCmd);
             }
         }
 
@@ -239,6 +235,7 @@
             uidFJson.cmds.push(tmpMenu);
             let tmpPicker = uidFJson.cmds.filter((item: {cmd: string, id: string}) => (item.cmd == "ui.picker" && item.id == tmpMenu.id));
             currMainPicker = tmpPicker[0];
+
         }
     }
 
@@ -290,25 +287,45 @@
     {#if currUID}
         <div class="col-12">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
-                <div class="form-floating col-2">
+                <div class="form-floating col-3">
                     <input type="text" class="form-control" id="tokenUID" placeholder="/" bind:value={currUID}/>
                     <label for="tokenUID">Token UID</label>
                 </div>
-                <div class="form-floating col-2">
+                <div class="form-floating col-3">
                     <input type="text" class="form-control" id="LaunPath" placeholder="/" bind:value={currFirstCmdClientObject.args.audio.launchAudioPath}/>
                     <label for="LaunPath">Launch Audio File</label>
                 </div>
-                <div class="form-floating col-2">
+                <div class="form-floating col-3">
                     <input type="text" class="form-control" id="RemPath" placeholder="/" bind:value={currFirstCmdClientObject.args.audio.removeAudioPath}/>
                     <label for="RemPath">Remove Audio File</label>
                 </div>
-                {#if config.deviceType == "Lilygo"}
-                <div class="form-floating col-2">
-                    <input type="text" class="form-control" id="aRemoveP" placeholder="/" bind:value={currFirstCmdClientObject.args.display.imgPath}/>
-                    <label for="aRemoveP">JPEG Path</label>
+            </div>
+            {#if config.deviceType == "Lilygo"}
+            <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+                {#if currFirstCmdClientObject.args.display.displayText.length < 1}
+                <div class="form-floating col-3">
+                    <input type="text" class="form-control" id="aImgP" placeholder="/" bind:value={currFirstCmdClientObject.args.display.imgPath}/>
+                    <label for="aImgP">JPEG Path</label>
                 </div>
                 {/if}
+                {#if currFirstCmdClientObject.args.display.imgPath.length < 1}                
+                <div class="form-floating col-3">
+                    <input type="text" class="form-control" id="dispTxt" placeholder="/" bind:value={currFirstCmdClientObject.args.display.displayText}/>
+                    <label for="dispTxt">Menu Text</label>
+                </div>
+                {/if}
+                <!-- {#if currMainPicker.args.pickers.length > 0}
+                <div class="form-floating col-3">
+                    <select class="form-select" id="itmActData" bind:value={currFirstCmdClientObject.args.input.buttons.} data-bs-toggle="tooltip" title="Select Menu to Open" data-bs-placement="top">
+                      <option value="9999">Main Menu</option>
+                      {#each getMenulist as {id, name}}
+                      <option value={id}>{name}</option>
+                      {/each}
+                    </select>
+                </div> 
+                {/if} -->
             </div>
+            {/if}
         </div>
         <div class="form-floating col-2">
             <input type="text" class="form-control" id="menujson" value="{JSON.stringify(uidFJson)}">

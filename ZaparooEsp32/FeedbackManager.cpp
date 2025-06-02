@@ -494,12 +494,12 @@ void FeedbackManager::setUidMappings(ZaparooToken* obj) {
       obj->setLaunchAudio(uidFile["cmds"][0]["args"]["client"][0]["args"]["audio"]["launchAudioPath"].as<String>().c_str());
       obj->setRemoveAudio(uidFile["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"].as<String>().c_str());
       obj->setLaunchJPEG(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().c_str()); 
-    }
-    if(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().length() > 0){
-      screenManager->setNowPlayingPath(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().c_str());
-    }else {
-      screenManager->setNowPlayingPath(nullptr);
-      //screenManager->dispDefaultImg(defaultImgPath.c_str());
+      if(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().length() > 0){
+        screenManager->setNowPlayingPath(uidFile["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"].as<String>().c_str());
+      }else {
+        screenManager->setNowPlayingPath(nullptr);
+        //screenManager->dispDefaultImg(defaultImgPath.c_str());
+      }
     }
 }
 

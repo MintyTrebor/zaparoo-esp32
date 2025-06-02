@@ -366,6 +366,20 @@ void sendUIDtoWeb(String UIDStr){
   UIDData["msgType"] = "pushedUIDFileJson";
   UIDData["data"]["UIDstr"] = UIDStr;
   UIDData["data"]["fileJson"] = fileData;
+  if(!fExists){
+    if(token->isLaunchAudioSet()){
+      String lAud = String(token->getLaunchAudio());
+      UIDData["data"]["fileJson"]["cmds"][0]["args"]["client"][0]["args"]["audio"]["launchAudioPath"] = lAud;
+    }
+    if(token->isRemoveAudioSet()){
+      String rAud = String(token->getRemoveAudio());
+      UIDData["data"]["fileJson"]["cmds"][0]["args"]["client"][0]["args"]["audio"]["removeAudioPath"] = rAud;
+    }
+    if(token->isLaunchJPEGSet()){
+      String lJpeg = String(token->getLaunchJPEG());
+      UIDData["data"]["fileJson"]["cmds"][0]["args"]["client"][0]["args"]["display"]["imgPath"] = lJpeg;
+    }
+  }
   cmdClients(UIDData);
 }
 
@@ -794,14 +808,14 @@ void rotary(void *pvParameters) {
 void battery_task(void *pvParameters) {
   while(1){
     bq27220.getBatteryStatus(&bqBatt);
-    Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging() ? "Charging" : "Discharging"));
-    Serial.println("Batt Charge: " + String(bq27220.getRemainingCapacity()));
+    //Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
+    //Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging() ? "Charging" : "Discharging"));
+    //Serial.println("Batt Charge: " + String(bq27220.getRemainingCapacity()));
     if(bq27220.getStateOfCharge() < 90 && !bq27220.getIsCharging()){
-      Serial.println("Triggered Charge");
+      //Serial.println("Triggered Charge");
       pwrMan.initCharging();
     } else if(bq27220.getStateOfCharge() > 90 && bq27220.getIsCharging()){
-      Serial.println("Triggered Stop Charge");
+      //Serial.println("Triggered Stop Charge");
       pwrMan.stopCharging();
     }
     delay(30000);
