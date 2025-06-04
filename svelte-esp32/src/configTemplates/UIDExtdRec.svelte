@@ -13,7 +13,7 @@
 </style>
 <script lang="ts">
     import { UIDUtils } from "../backend/UIDUtils";
-    import type { ConfigData, zapScript, zapScriptCmd, client } from "../types/ConfigData";
+    import type { ConfigData, zapScript, zapScriptCmd, client, pickerList } from "../types/ConfigData";
     import { CommonUtils } from "../backend/CommonUtils";
     import { onDestroy, onMount, tick } from 'svelte';
     import { EspUtils } from "../backend/EspUtils";
@@ -75,9 +75,14 @@
                 for(m in mainCmds.args.pickers){
                     let currPicker: zapScriptCmd = mainCmds.args.pickers[m];
                     if(currPicker){
-                        for(n in currPicker.args.client){
-                            let currClient: client = currPicker.args.client[n];
-                            if(currClient){validateClient(currClient)};
+                        for(i in currPicker.args.items){
+                            let currItem: zapScriptCmd = currPicker.args.items[i];
+                            if(currItem){
+                                for(n in currItem.args.client){
+                                    let currClient: client = currItem.args.client[n];
+                                    if(currClient){validateClient(currClient)};
+                                }
+                            }
                         }
                     }
                 }
@@ -88,12 +93,14 @@
         UIDUtils.saveUIDFileJson(updRec);
     }
 
-    function getMenulist(): any {
-        let tmpPickers = uidFJson.cmds.filter((item: {cmd: string}) => (item.cmd == "ui.picker"));
-        if(tmpPickers.length > 0){
+    function getMenulist(): pickerList {
+        let tmpPickers: pickerList = UIDUtils.getBlankPickerList();
+        tmpPickers.pickers = uidFJson.cmds.filter((item: {cmd: string}) => (item.cmd == "ui.picker"));
+        if(tmpPickers.pickers.length > 0){
             return tmpPickers;
         }else{
-            return {};
+            tmpPickers.pickers = [];
+            return tmpPickers;
         }
     }
 
@@ -114,6 +121,12 @@
                             currAction.args.audio.onClickAudioPath = CommonUtils.validateAudioPath(currAction.args.audio.onClickAudioPath);
                             currAction.args.audio.launchAudioPath = CommonUtils.validateAudioPath(currAction.args.audio.launchAudioPath);
                             currAction.args.audio.removeAudioPath = CommonUtils.validateAudioPath(currAction.args.audio.removeAudioPath);
+                            if(currAction.args.uiPickerID.length > 0){
+                                currAction.cmd = "ui.picker";
+                            }
+                            if(currAction.args.uiPickerID.length == 0 && currAction.cmd == "ui.picker"){
+                                currAction.cmd = "";
+                            }
                         }
                     }
                 }
@@ -175,7 +188,6 @@
                 }
             }
         }
-
     }
     
 
@@ -226,40 +238,38 @@
         tmpMenu.cmd = "ui.picker";
         //menus always go into main ui.picker as args.pickers
         if(currMainPicker.id){
+            tmpMenu.name = "New Zap Menu"
             currMainPicker.args.pickers.push(tmpMenu);
-            //currSelMenuID = tmpMenu.id;
-            //currSelMenu = tmpMenu;
         }else {
             //this must be a new main menu
             tmpMenu.name = "Main Zap Menu"
             uidFJson.cmds.push(tmpMenu);
             let tmpPicker = uidFJson.cmds.filter((item: {cmd: string, id: string}) => (item.cmd == "ui.picker" && item.id == tmpMenu.id));
             currMainPicker = tmpPicker[0];
-
+            let tmpAction = UIDUtils.getNewAction();
+            tmpAction.cmd = "ui.picker";
+            tmpAction.args.uiPickerID = tmpPicker[0].id;
+            uidFJson.cmds[0].args.client[0].args.input.buttons[0].args.actions = [];
+            uidFJson.cmds[0].args.client[0].args.input.buttons[0].args.actions.push(tmpAction);
         }
     }
 
     function delCurrSelMenuID(delMenuID: string, delMenuIdx: number){
-        if(currMainPicker.args.pickers[delMenuIdx].id == delMenuID){
-            currMainPicker.args.pickers.splice(delMenuIdx, 1);
+        if(delMenuID == currMainPicker.id){
+            let tmpIndx = uidFJson.cmds.findIndex(item => item.id === currMainPicker.id);
+            console.log("currMainPicker.id", currMainPicker.id)
+            console.log("tmpIndx", tmpIndx)
+            if (tmpIndx !== -1){
+                uidFJson.cmds.splice(tmpIndx, 1);
+                currMainPickerID = "";
+                currMainPicker = UIDUtils.geBlankZapScriptCmd();
+            }
+        }else {
+            if(currMainPicker.args.pickers[delMenuIdx].id == delMenuID){
+                currMainPicker.args.pickers.splice(delMenuIdx, 1);
+            }
         }
     }
-
-    function delCurrSelMenuItemID(delItemID: string, delItemIdx: number){
-        if(currSelMenu.args.items[delItemIdx].id == delItemID){
-            currSelMenu.args.items.splice(delItemIdx, 1);
-        }
-    }
-
-    function addNewMenuItem(){
-        let tmpItem: zapScriptCmd = UIDUtils.getNewZapScriptCmd();
-        tmpItem.cmd = "ui.picker";
-        tmpItem.args.client[0].type = "reader";
-        tmpItem.args.client[0].args.input.buttons[0].buttonID = "rotary";
-        currSelMenu.args.items.push(tmpItem);
-    }
-
-    
 
     function menuReturn(menuData: zapScriptCmd): void{
         menuEditDialog.close("true");
@@ -288,7 +298,7 @@
         <div class="col-12">
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
                 <div class="form-floating col-3">
-                    <input type="text" class="form-control" id="tokenUID" placeholder="/" bind:value={currUID}/>
+                    <input type="text" class="form-control" id="tokenUID" placeholder="/" bind:value={currUID} readonly/>
                     <label for="tokenUID">Token UID</label>
                 </div>
                 <div class="form-floating col-3">
@@ -302,43 +312,29 @@
             </div>
             {#if config.deviceType == "Lilygo"}
             <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
-                {#if currFirstCmdClientObject.args.display.displayText.length < 1}
+                {#if !currFirstCmdClientObject.args.display.displayText}
                 <div class="form-floating col-3">
                     <input type="text" class="form-control" id="aImgP" placeholder="/" bind:value={currFirstCmdClientObject.args.display.imgPath}/>
                     <label for="aImgP">JPEG Path</label>
                 </div>
                 {/if}
-                {#if currFirstCmdClientObject.args.display.imgPath.length < 1}                
+                {#if !currFirstCmdClientObject.args.display.imgPath}                
                 <div class="form-floating col-3">
                     <input type="text" class="form-control" id="dispTxt" placeholder="/" bind:value={currFirstCmdClientObject.args.display.displayText}/>
                     <label for="dispTxt">Menu Text</label>
                 </div>
                 {/if}
-                <!-- {#if currMainPicker.args.pickers.length > 0}
-                <div class="form-floating col-3">
-                    <select class="form-select" id="itmActData" bind:value={currFirstCmdClientObject.args.input.buttons.} data-bs-toggle="tooltip" title="Select Menu to Open" data-bs-placement="top">
-                      <option value="9999">Main Menu</option>
-                      {#each getMenulist as {id, name}}
-                      <option value={id}>{name}</option>
-                      {/each}
-                    </select>
-                </div> 
-                {/if} -->
             </div>
             {/if}
         </div>
-        <div class="form-floating col-2">
+        <!-- <div class="form-floating col-2">
             <input type="text" class="form-control" id="menujson" value="{JSON.stringify(uidFJson)}">
             <label for="menuName">uidFJson JSON</label>
         </div>
         <div class="form-floating col-2">
             <input type="text" class="form-control" id="menujson" value="{JSON.stringify(currMainPicker)}">
             <label for="menuName">currMainPicker JSON</label>
-        </div>
-        <div class="form-floating col-2">
-            <input type="text" class="form-control" id="menujson" value="{currSelMenuID}">
-            <label for="menuName">currSelMenuID</label>
-        </div>
+        </div> -->
         {#if config.deviceType == "Lilygo"}
             <div class="mt-3 mb-0 pb-0">
                 <h6>Custom Menus</h6>
@@ -361,12 +357,14 @@
                             {#if currMainPicker.id}
                             <tr>
                                 <td>
+                                    {#if currMainPicker?.args?.pickers.length < 1}
                                     <button type="button" class="btn btn-primary" onclick={() => delCurrSelMenuID(currMainPicker.id, 0)} data-bs-toggle="tooltip" title="Delete This Menu" data-bs-placement="top">
                                         <FontAwesomeIcon icon={faTrash}/>
                                     </button>
+                                    {/if}
                                 </td>
                                 <td>
-                                    <input type="text" class="form-control" id="menuName" bind:value={currMainPicker.name} placeholder="Main Menu">
+                                    <input type="text" class="form-control" id="menuName" bind:value={currMainPicker.name} placeholder="Main Zap Menu" readonly>
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-primary" onclick={() => setCurrSelMenuID(currMainPicker.id)} data-bs-toggle="tooltip" title="Edit Menu Items" data-bs-placement="top">

@@ -43,23 +43,20 @@ R"({
                                         {
                                             "buttonID": "rotary",
                                             "args": {
-                                                "cmd": "",
-                                                "args": {
-                                                    "actions": [
-                                                        {
+                                                "actions": [
+                                                    {
+                                                        "cmd": "",
+                                                        "args": {
+                                                            "uiPickerID": "",
                                                             "cmd": "",
-                                                            "args": {
-                                                                "uiPickerID": "",
-                                                                "cmd": "",
-                                                                "audio": {
-                                                                    "removeAudioPath": "",
-                                                                    "launchAudioPath": "",
-                                                                    "onClickAudioPath": ""
-                                                                }
+                                                            "audio": {
+                                                                "removeAudioPath": "",
+                                                                "launchAudioPath": "",
+                                                                "onClickAudioPath": ""
                                                             }
                                                         }
-                                                    ]
-                                                }
+                                                    }
+                                                ]
                                             }
                                         }
                                     ]
@@ -107,23 +104,20 @@ R"({
                                         {
                                             "buttonID": "rotary",
                                             "args": {
-                                                "cmd": "doDeepSleep",
-                                                "args": {
-                                                    "actions": [
-                                                        {
+                                                "actions": [
+                                                    {
+                                                        "cmd": "doDeepSleep",
+                                                        "args": {
+                                                            "uiPickerID": "",
                                                             "cmd": "",
-                                                            "args": {
-                                                                "uiPickerID": "",
-                                                                "cmd": "",
-                                                                "audio": {
-                                                                    "removeAudioPath": "",
-                                                                    "launchAudioPath": "",
-                                                                    "onClickAudioPath": ""
-                                                                }
+                                                            "audio": {
+                                                                "removeAudioPath": "",
+                                                                "launchAudioPath": "",
+                                                                "onClickAudioPath": ""
                                                             }
                                                         }
-                                                    ]
-                                                }
+                                                    }
+                                                ]
                                             }
                                         }
                                     ]
@@ -171,23 +165,20 @@ R"({
                                         {
                                             "buttonID": "rotary",
                                             "args": {
-                                                "cmd": "doShutdown",
-                                                "args": {
-                                                    "actions": [
-                                                        {
+                                                "actions": [
+                                                    {
+                                                        "cmd": "doShutdown",
+                                                        "args": {
+                                                            "uiPickerID": "",
                                                             "cmd": "",
-                                                            "args": {
-                                                                "uiPickerID": "",
-                                                                "cmd": "",
-                                                                "audio": {
-                                                                    "removeAudioPath": "",
-                                                                    "launchAudioPath": "",
-                                                                    "onClickAudioPath": ""
-                                                                }
+                                                            "audio": {
+                                                                "removeAudioPath": "",
+                                                                "launchAudioPath": "",
+                                                                "onClickAudioPath": ""
                                                             }
                                                         }
-                                                    ]
-                                                }
+                                                    }
+                                                ]
                                             }
                                         }
                                     ]

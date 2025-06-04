@@ -43,7 +43,8 @@ void InputManager:: getMainMenu(JsonDocument& menuJson){
 }
 
 void InputManager::setCurrMenu(String menuID){
-  Serial.println("SettingCurrMenu To: " + String(menuID));
+  Serial.println("SettingCurrMenu To: ");
+  Serial.println(menuID);
   JsonDocument tmpJson;
   currMenuJson = {};
   if(menuID == 0){
@@ -57,18 +58,6 @@ void InputManager::setCurrMenu(String menuID){
     Serial.println("currMenuItemCount: " + String(currMenuItemCount));
   }else {    
     getMenu(menuID, currMenuJson);
-    // currMenuJson = tmpJson;
-    //add the exit menu data into the menuitems array
-    // JsonDocument exitMenuItem;
-    // uidDataMan->getUidFileMenuItemJson(exitMenuItem);
-    // exitMenuItem["itemID"] = "exitMenu";
-    // exitMenuItem["itemImage"] = currMenuJson["exitMenuImg"];
-    // exitMenuItem["itemText"] = currMenuJson["exitMenuText"];
-    // exitMenuItem["itemTextColour"] = currMenuJson["exitMenuTextColour"];
-    // exitMenuItem["itemActionType"] = "menu";
-    // exitMenuItem["itemActionData"] = currMenuJson["exitMenuID"];
-    // exitMenuItem["itemActionAudio"] = currMenuJson["exitMenuActionAudio"];
-    // currMenuJson["menuItems"].add(exitMenuItem);
     currMenuItemCount = currMenuJson["args"]["items"].size();
   }  
   if(currMenuItemCount > 0){currMenuItemCount--;}
@@ -84,8 +73,12 @@ void InputManager::setupMenu(){
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;
   //set the default sub menu id 
-  if(tmpJson["launchImgMenuID"].as<String>().length() > 0){
-    defSubMenuID = tmpJson["launchImgMenuID"].as<String>();
+  if(currMenuItemID == "9999" && tmpJson["cmds"][0]["cmd"].as<String>() == "evaluate"){
+    if(tmpJson["cmds"][0]["args"]["client"][0]["type"].as<String>() == "reader"){
+      if(tmpJson["cmds"][0]["args"]["client"][0]["args"]["input"]["buttons"][0]["args"]["actions"][0]["cmd"].as<String>() == "ui.picker"){
+        defSubMenuID = tmpJson["cmds"][0]["args"]["client"][0]["args"]["input"]["buttons"][0]["args"]["actions"][0]["args"]["uiPickerID"].as<String>();
+      }
+    }
     currMenuItemPos == 0;
     showCurrMenuItem();
   }else {
@@ -97,15 +90,26 @@ void InputManager::setupMenu(){
 };
 
 void InputManager::getMenu(String menuID, JsonDocument& menuJson){
-  //Serial.println("GetMenu");
+  //Serial.println("GetMenu: " + String(menuID));
   JsonDocument tmpJson;
   tmpJson = uidDataMan->currUIDJson;
-  if(tmpJson["menus"].is<JsonArray>() && !tmpJson["menus"].isNull()){ 
-    for (JsonObject menu : tmpJson["menus"].as<JsonArray>()) {
-        if (menu["menuID"] == menuID) {
-            Serial.println("Found Menu");
+  if(tmpJson["cmds"].is<JsonArray>() && !tmpJson["cmds"].isNull()){ 
+    for (JsonObject menu : tmpJson["cmds"].as<JsonArray>()) {
+        if (menu["id"] == menuID) {
+            //Serial.println("Found Menu");
             menuJson = menu;
             return;
+        }
+        if (menu["cmd"] == "ui.picker"){
+          if(menu["args"]["pickers"].is<JsonArray>() && !menu["args"]["pickers"].isNull()){
+            for (JsonObject picker : menu["args"]["pickers"].as<JsonArray>()){
+              if (picker["id"] == menuID) {
+                  //Serial.println("Found Menu");
+                  menuJson = picker;
+                  return;
+              }
+            }
+          }
         }
     }
   }else{
@@ -119,7 +123,6 @@ void InputManager::doRotaryButton(){
   String tmpActionType = currMenuItemJson["cmd"].as<String>();
   String tmpActionData = currMenuItemJson["args"]["zapscript"].as<String>();
   String tmpMenuID = currMenuItemJson["id"].as<String>();
-  //Serial.println("itemActionAudio: " + currMenuItemJson["itemActionAudio"].as<String>());
   //do default menu items check
   if(tmpMenuID == "9999-1" && defSubMenuID.length() > 0){
     setCurrMenu(defSubMenuID);
@@ -130,11 +133,11 @@ void InputManager::doRotaryButton(){
   }else if(tmpMenuID == "9999-3"){
     powerManager->doShutdown();
   }else if(tmpActionType == "evaluate" && tmpActionData.length() > 0){
-    //Serial.println("Goto Menu : "  + tmpActionData);
-    setCurrMenu(tmpActionData);
-    currMenuItemPos = 0;
-    showCurrMenuItem();
-    //doInputEventAudio(tmpActionAudio);
+    sendToZap(tmpActionData);
+    if(currMenuItemJson["args"]["client"][0]["args"]["audio"]["onClickAudioPath"].as<String>().length() > 0){
+      String clkAudio = currMenuItemJson["args"]["client"][0]["args"]["audio"]["onClickAudioPath"];
+      doInputEventAudio(clkAudio.c_str());
+    }
   }else if((tmpActionType == "evaluate" && tmpActionData.length() == 0) || (tmpActionType == "evaluate.client" && tmpActionData.length() == 0)){
     //Serial.println("Do Action From Menu Click: "  + tmpActionData);
     JsonDocument tmpJson = currMenuItemJson["args"]["client"][0]["args"]["input"]["buttons"][0]["args"];
@@ -221,7 +224,7 @@ void InputManager::showCurrMenuItem(){
   }else if(tmpImgPath == "dispGotoSleep"){
     screenManager->dispGotoSleep();
   }else {
-    if (tmpTextChar || strlen(tmpTextChar) > 0) {
+    if (strlen(tmpTextChar) > 0) {
       screenManager->drawTextStr(tmpTxtStr, tmpTxtRGB, tmpScrnRBG, 2, 2);
     }else{
       screenManager->dispJpgImg(tmpImgPath.c_str());

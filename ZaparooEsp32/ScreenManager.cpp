@@ -81,7 +81,14 @@ void ScreenManager::drawTextStr(String text, JsonDocument txtRGBJson, JsonDocume
     if(yStartPos < 2){yStartPos = 0;}
   }
   tftScr.setCursor(0, yStartPos);
-  
+  //deal with single word text
+  if(tftScr.textWidth(text) < tftScr.width()){
+    int numPixelSpacesNeeded = int((tftScr.width() - tftScr.textWidth(text)) / 2);
+    tftScr.setCursor(numPixelSpacesNeeded, tftScr.getCursorY());
+    tftScr.print(text);
+    return;
+  }
+
   while ( (text.indexOf(' ', wordStart) >= 0) && ( wordStart <= text.length())) {
     wordEnd = text.indexOf(' ', wordStart + 1);    
     uint16_t len = tftScr.textWidth(text.substring(wordStart, wordEnd));

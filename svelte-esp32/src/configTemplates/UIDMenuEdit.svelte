@@ -16,7 +16,7 @@
   }
 </style>
 <script lang="ts">
-  import type { ConfigData, zapScript, zapScriptCmd, client, zapScriptPickerItem } from "../types/ConfigData";
+  import type { ConfigData, zapScript, zapScriptCmd, client, zapScriptPickerItem, pickerList } from "../types/ConfigData";
   import { ZapUtils } from '../backend/ZapUtils';
   import { EspUtils } from "../backend/EspUtils";
   import { UIDUtils } from "../backend/UIDUtils";
@@ -34,6 +34,9 @@
   let showColPicker: HTMLDialogElement;
   let currSrchResult:string = $state("");
   let currMenuItemID: string = "";
+  let isMainMenu: boolean = $state(false);
+  let currMainZapMenuID: string = $state("");
+  let currPickerList: pickerList = $state(UIDUtils.getBlankPickerList());
   let rgb: any = $state({
     "r": 255,
     "g": 255,
@@ -89,6 +92,7 @@
     if(tmpArr.length > 0){
       tmpArr[0].args.zapscript  = currSrchResult;
     }
+    currSrchResult = "";
   }
 
   function updateItemRGB(){
@@ -106,20 +110,34 @@
       let i: any = 0;
       let m: any = 0;      
       for(i in uidFJson.cmds){
+        //first generate the list of existing zap (user created) menus
+        if(uidFJson.cmds[i].cmd == "ui.picker"){
+          currMainZapMenuID = uidFJson.cmds[i].id;
+          currPickerList.pickers = [];
+          for(m in uidFJson.cmds[i].args.pickers){
+            let tmpPicker = UIDUtils.geBlankZapScriptCmd();
+            tmpPicker.id = uidFJson.cmds[i].args.pickers[m].id;
+            tmpPicker.name = uidFJson.cmds[i].args.pickers[m].name
+            currPickerList.pickers.push(tmpPicker);
+          }
+        }
+        m = 0;
         if(uidFJson.cmds[i].cmd == "ui.picker" && uidFJson.cmds[i].id == currSelMenuID){
             currSelMenu = uidFJson.cmds[i];
-            return;
+            isMainMenu = true;
+            return
         }else{
             for(m in uidFJson.cmds[i].args.pickers){
               if(uidFJson.cmds[i].args.pickers[m].cmd == "ui.picker" && uidFJson.cmds[i].args.pickers[m].id == currSelMenuID){
                   currSelMenu = uidFJson.cmds[i].args.pickers[m];
+                  isMainMenu = false;
                   return;
               }
             }
-        }
+        }       
       }
     }
-    currSelMenu = UIDUtils.getBlankZapScriptCmd();
+    currSelMenu = UIDUtils.getBlankZapScriptCmd(); 
     return
   }
 
@@ -129,11 +147,11 @@
 </div>
 <div class="col-12">
   <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
-    <div class="form-floating col-2">
+    <div class="form-floating col-6">
       <input type="text" class="form-control" id="menuName" bind:value={currSelMenu.name}>
       <label for="menuName">Menu Name</label>
     </div>
-    <div class="form-floating col-2">
+    <!-- <div class="form-floating col-2">
       <input type="text" class="form-control" id="menujson" value="{JSON.stringify(currSelMenu)}">
       <label for="menuName">Menu JSON</label>
     </div>
@@ -141,6 +159,14 @@
       <input type="text" class="form-control" id="menujson" value="{currSelMenuID}">
       <label for="menuName">currSelMenuID</label>
     </div>
+    <div class="form-floating col-2">
+      <input type="text" class="form-control" id="menujson" value="{JSON.stringify(uidFJson)}">
+      <label for="menuName">uidFJson</label>
+    </div>
+    <div class="form-floating col-2">
+      <input type="text" class="form-control" id="menujson" value="{currMainZapMenuID}">
+      <label for="menuName">currMainZapMenuID</label>
+    </div> -->
   </div>
 </div>
 <div class="mt-4 pa-0">
@@ -181,8 +207,16 @@
                         <FontAwesomeIcon icon={faSearch}/>
                     </button>
                   </td>
-                  <td><input type="text" class="form-control" id="itemImgPth" placeholder="/"  bind:value={menuItem.args.client[0].args.display.imgPath}/></td>
-                  <td><input type="text" class="form-control" id="itemText" bind:value={menuItem.args.client[0].args.display.displayText}/></td>
+                  <td>
+                    {#if menuItem.args.client[0].args.display.displayText.length < 1}
+                    <input type="text" class="form-control" id="itemImgPth" placeholder="/"  bind:value={menuItem.args.client[0].args.display.imgPath}/>
+                    {/if}
+                  </td>
+                  <td>
+                    {#if menuItem.args.client[0].args.display.imgPath.length < 1}
+                    <input type="text" class="form-control" id="itemText" bind:value={menuItem.args.client[0].args.display.displayText}/>
+                    {/if}
+                  </td>
                   <td>
                       <button class="btn" onclick={() => showCP(menuItem.args.client[0].args.display.textColour, menuItem.id)} style={colButtSet(menuItem.args.client[0].args.display.textColour)}>
                           <FontAwesomeIcon icon={faPaintBrush}/>
@@ -190,8 +224,12 @@
                   </td>
                 <td>
                   <select class="form-select" id="itmActData" bind:value={menuItem.args.client[0].args.input.buttons[0].args.actions[0].args.uiPickerID} data-bs-toggle="tooltip" title="Select Menu to Open" data-bs-placement="top">
-                      <option value="9999">Main Menu</option>
-                      {#each getMenulist as {id, name}}
+                    <option value=""></option>  
+                    <option value="9999">Reader Main Menu</option>
+                      {#if !isMainMenu}
+                      <option value={currMainZapMenuID}>Main Zap Menu</option>
+                      {/if}
+                      {#each currPickerList.pickers as {id, name}}
                       <option value={id}>{name}</option>
                       {/each}
                   </select>
@@ -202,11 +240,17 @@
       </table>
   </div>
 </div>
+<div class="text-center mb-2 col-12">
+    <button type="button" class="btn btn-primary mt-3" onclick={() => saveMenu()}>Save & Exit</button>
+</div>
+{#key currSrchResult}
 <dialog bind:this={srchDialog}>
   <div class="srchDialog">
       <SearchDialog {searchReturn}> </SearchDialog>
   </div>
 </dialog>
+{/key}
+
 <dialog bind:this={showColPicker}>
   <div class="colDialog dark">
       <ColorPicker bind:rgb position="responsive" isDialog={false} isDark={true} textInputModes={['rgb']}/>

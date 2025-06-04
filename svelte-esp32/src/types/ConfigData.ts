@@ -193,6 +193,10 @@ export interface zapScriptCmd {
   };
 }
 
+export interface pickerList {
+  pickers:Array<zapScriptCmd>;
+}
+
 export interface zapScriptPickerItem {
   id: string;
   name: string;

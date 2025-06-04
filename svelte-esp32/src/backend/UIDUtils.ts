@@ -1,5 +1,5 @@
 import { writable, type Readable, type Writable } from "svelte/store";
-import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage, UIDFileJson, menuItem, menu, zapScript, zapScriptCmd, client, audio, display, colour, input, button, action, zapScriptPickerItem } from "../types/ConfigData";
+import type { UIDExtdRecords, UIDExtdRecord, UIDExtdRecsMessage, PushedUIDTokenMessage, EspMessage, UIDFileJson, menuItem, menu, zapScript, zapScriptCmd, client, audio, display, colour, input, button, action, zapScriptPickerItem, pickerList } from "../types/ConfigData";
 import { EspUtils } from "./EspUtils";
 import { LogUtils } from "./LogUtils";
 import {v4 as uuidv4} from 'uuid';
@@ -123,6 +123,10 @@ export class UIDUtils{
 
     static getBlankZapScriptCmd(): zapScriptCmd {
         return {} as zapScriptCmd;
+    }
+
+    static getBlankPickerList(): pickerList {
+        return {} as pickerList;
     }
 
     static getNewClient(): client {
