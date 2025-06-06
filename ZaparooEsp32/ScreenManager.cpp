@@ -34,12 +34,6 @@ int ScreenManager::rgbConvert(unsigned char r, unsigned char g, unsigned char b)
 
     int result = (red << (5 + 6)) | (green << 5) | blue;
 
-//tests
-    printf("red: %x\n", red);
-    printf("green: %x\n", green);
-    printf("blue: %x\n", blue);
-    printf("result: %x\n", result);
-
     return result;
 }
 
@@ -47,6 +41,7 @@ int ScreenManager::rgbConvert(unsigned char r, unsigned char g, unsigned char b)
 void ScreenManager::drawTextStr(String text, JsonDocument txtRGBJson, JsonDocument backGrdRGBJson, int fntSize, int fontNumber){
   tftScr.setCursor(0, 0);
   tftScr.setRotation(1);
+  //tftScr.fillScreen(TFT_WHITE);
   tftScr.fillScreen(rgbConvert(backGrdRGBJson["r"], backGrdRGBJson["g"], backGrdRGBJson["b"]));
   tftScr.setTextColor(rgbConvert(txtRGBJson["r"], txtRGBJson["g"], txtRGBJson["b"]));
   tftScr.setTextSize(fntSize);

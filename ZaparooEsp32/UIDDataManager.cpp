@@ -37,10 +37,10 @@ void UIDDataManager::getUidFileDefaultJson(JsonDocument& fdJson){
   blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["r"] = 0;
   blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["g"] = 0;
   blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["textColour"]["b"] = 0;
-  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["r"] = 0;
-  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["g"] = 0;
-  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["b"] = 0;
-  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontSize"] = 16;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["r"] = 255;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["g"] = 255;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["screenColour"]["b"] = 255;
+  blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontSize"] = 2;
   blankJson["cmds"][0]["args"]["client"][0]["args"]["display"]["fontNumber"] = 2;
   blankJson["cmds"][0]["args"]["client"][0]["args"]["input"].createNestedArray("buttons");
   blankJson["cmds"][0]["args"]["client"][0]["args"]["input"]["buttons"][0]["buttonID"] = "rotary";

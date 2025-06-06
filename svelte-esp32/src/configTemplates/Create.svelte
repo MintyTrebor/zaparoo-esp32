@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, UIDExtdRecord, UIDFileJson, zapScript } from '../types/ConfigData';
+  import type { zapSystems, zapSearchResults, htmlFormattedSearchRes, writeResultState, sourceZapSvsList, ConfigData, zapScript } from '../types/ConfigData';
   import { ZapUtils } from '../backend/ZapUtils';
   import { CommonUtils } from '../backend/CommonUtils';
   import { EspUtils } from "../backend/EspUtils";

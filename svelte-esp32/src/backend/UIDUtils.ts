@@ -25,11 +25,6 @@ export class UIDUtils{
         if(!EspUtils.sendMessage(newCMD)){
             setTimeout(()=> this.setUIDMode(value), 2000);
         }
-        // if(!this.isUIDModeEnabled){
-        //     let currData: zapScript = this.getNewUIDFileStructure();
-        //     this.currentScannedFileJson.set(currData);
-        //     this.currentScannedUID = "";
-        // }
     }
     
     static getBlank(): UIDExtdRecord{
@@ -69,9 +64,9 @@ export class UIDUtils{
         let tmpObj: display = {
             imgPath: "",
             displayText: "",
-            textColour: this.getNewColour(),
-            screenColour: this.getNewColour(),
-            fontSize: 16,
+            textColour: this.getNewTextColour(),
+            screenColour: this.getNewScreenColour(),
+            fontSize: 2,
             fontNumber: 2
         }
         return tmpObj;
@@ -141,11 +136,19 @@ export class UIDUtils{
         return tmpObj;
     }
 
-    static getNewColour(): colour {
+    static getNewTextColour(): colour {
         let tmpObj: colour = {
             r: 0,
             g: 0,
             b: 0
+        }
+        return tmpObj;
+    }
+    static getNewScreenColour(): colour {
+        let tmpObj: colour = {
+            r: 255,
+            g: 255,
+            b: 255
         }
         return tmpObj;
     }
@@ -187,6 +190,12 @@ export class UIDUtils{
         tmpBtn.args.actions.push(tmpAction);
         tmpBtn.buttonID = "rotary";
         tmpClient.type = "reader";
+        tmpClient.args.display.screenColour.r = 255;
+        tmpClient.args.display.screenColour.g = 255;
+        tmpClient.args.display.screenColour.b = 255;
+        tmpClient.args.display.textColour.r = 0;
+        tmpClient.args.display.textColour.g = 0;
+        tmpClient.args.display.textColour.b = 0;
         tmpClient.args.input.buttons.push(tmpBtn);
         tmpUIDFile.cmds.push(this.getNewZapScriptCmd());
         tmpUIDFile.cmds[0].args.client?.push(tmpClient);
@@ -201,6 +210,12 @@ export class UIDUtils{
         tmpBtn.args.actions.push(tmpAction);
         tmpBtn.buttonID = "rotary";
         tmpClient.type = "reader";
+        tmpClient.args.display.screenColour.r = 255;
+        tmpClient.args.display.screenColour.g = 255;
+        tmpClient.args.display.screenColour.b = 255;
+        tmpClient.args.display.textColour.r = 0;
+        tmpClient.args.display.textColour.g = 0;
+        tmpClient.args.display.textColour.b = 0;
         tmpClient.args.input.buttons.push(tmpBtn);
         tmpUIDFile.args.client.push(tmpClient);
         return tmpUIDFile;

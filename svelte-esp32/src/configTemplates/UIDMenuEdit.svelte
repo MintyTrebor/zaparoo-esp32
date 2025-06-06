@@ -16,27 +16,25 @@
   }
 </style>
 <script lang="ts">
-  import type { ConfigData, zapScript, zapScriptCmd, client, zapScriptPickerItem, pickerList } from "../types/ConfigData";
-  import { ZapUtils } from '../backend/ZapUtils';
-  import { EspUtils } from "../backend/EspUtils";
+  import type {  zapScript, zapScriptCmd, pickerList } from "../types/ConfigData";
   import { UIDUtils } from "../backend/UIDUtils";
-  import { onDestroy, onMount } from 'svelte';
-  import { writable } from "svelte/store";
+  import { onMount } from 'svelte';
   import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
   import SearchDialog from './ZapSearch.svelte';
   import ColorPicker from 'svelte-awesome-color-picker';
-  import { faEllipsis, faPaintBrush, faSearch, faSquarePlus, faTelevision, faTrash } from "@fortawesome/free-solid-svg-icons";
-  let { menuReturn, uidFJson = $bindable(), getMenulist, currSelMenuID }: {menuReturn: any, uidFJson: zapScript, getMenulist: any, currSelMenuID: string } = $props();
-  // export let menuReturn: any;
+  import {  faEllipsis, faSearch, faSquarePlus, faTrash, faFont } from "@fortawesome/free-solid-svg-icons";
+  import MenuItemEdit from './UIDMenuItemEdit.svelte';
+  let { menuReturn, uidFJson = $bindable(), currSelMenuID }: {menuReturn: any, uidFJson: zapScript, currSelMenuID: string } = $props();
   let currSelMenu: zapScriptCmd = $state(UIDUtils.getNewZapScriptCmd());
-  //let currSelMenuID: string = $state("");
   let srchDialog: HTMLDialogElement;
+  let itemEditDialog: HTMLDialogElement;
   let showColPicker: HTMLDialogElement;
   let currSrchResult:string = $state("");
   let currMenuItemID: string = "";
   let isMainMenu: boolean = $state(false);
   let currMainZapMenuID: string = $state("");
   let currPickerList: pickerList = $state(UIDUtils.getBlankPickerList());
+  let currMenuItem: zapScriptCmd = $state(UIDUtils.getNewZapScriptCmd());
   let rgb: any = $state({
     "r": 255,
     "g": 255,
@@ -81,6 +79,15 @@
     showColPicker.showModal();
   }
 
+  function showMenuItemEdit(menuItmId: string){
+    currMenuItemID = menuItmId;
+    let tmpArr = currSelMenu.args.items.filter((item: {id: string}) => (item.id == currMenuItemID));
+    if(tmpArr.length > 0){
+      currMenuItem = tmpArr[0];
+    }
+    itemEditDialog.showModal();
+  }
+
   function colButtSet(ItmRGB: any){
     return `background-color: rgb(${ItmRGB.r}, ${ItmRGB.g}, ${ItmRGB.b})`;
   }
@@ -103,6 +110,10 @@
       tmpArr[0].args.client[0].args.display.textColour.g = rgb.g;
       tmpArr[0].args.client[0].args.display.textColour.b = rgb.b;
     }
+  }
+
+  function itemReturn(tmpStr:string): void{
+      itemEditDialog.close("true");
   }
 
   function setCurrSelMenu(){
@@ -145,28 +156,12 @@
 <div class="text-center mb-3">
   <h2>Menu Edit</h2>
 </div>
-<div class="col-12">
-  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
-    <div class="form-floating col-6">
+<div class="text-center col-12">
+  <div class="text-center d-flex flex-column flex-md-row align-items-center justify-content-between">
+    <div class="text-center form-floating col-6">
       <input type="text" class="form-control" id="menuName" bind:value={currSelMenu.name}>
       <label for="menuName">Menu Name</label>
     </div>
-    <!-- <div class="form-floating col-2">
-      <input type="text" class="form-control" id="menujson" value="{JSON.stringify(currSelMenu)}">
-      <label for="menuName">Menu JSON</label>
-    </div>
-    <div class="form-floating col-2">
-      <input type="text" class="form-control" id="menujson" value="{currSelMenuID}">
-      <label for="menuName">currSelMenuID</label>
-    </div>
-    <div class="form-floating col-2">
-      <input type="text" class="form-control" id="menujson" value="{JSON.stringify(uidFJson)}">
-      <label for="menuName">uidFJson</label>
-    </div>
-    <div class="form-floating col-2">
-      <input type="text" class="form-control" id="menujson" value="{currMainZapMenuID}">
-      <label for="menuName">currMainZapMenuID</label>
-    </div> -->
   </div>
 </div>
 <div class="mt-4 pa-0">
@@ -190,6 +185,7 @@
                   <th scope="col"></th>
                   <!-- <th scope="col"></th> -->
                   <th scope="col">Open Menu</th>
+                  <th scope="col"></th>
               </tr>
           </thead>
           <tbody>
@@ -201,15 +197,21 @@
                       </button>
                   </td>
                   <td><input type="text" class="form-control" id="itemMnuName" bind:value={menuItem.name}/></td>
-                  <td><input type="text" class="form-control" id="itemZapScrpt" bind:value={menuItem.args.zapscript}/></td>
                   <td>
+                    <!-- {#if menuItem.args?.client[0]?.args.input?.buttons[0]?.args?.actions[0]?.args.uiPickerID.length < 1} -->
+                    <input type="text" class="form-control" id="itemZapScrpt" bind:value={menuItem.args.zapscript}/>
+                    <!-- {/if} -->
+                  </td>
+                  <td>
+                    <!-- {#if menuItem.args?.client[0]?.args.input?.buttons[0]?.args?.actions[0]?.args.uiPickerID.length < 1} -->
                     <button type="button" class="btn btn-primary" onclick={() => showSrchDialog(menuItem.id)} data-bs-toggle="tooltip" title="Search For Game" data-bs-placement="top">
                         <FontAwesomeIcon icon={faSearch}/>
                     </button>
+                    <!-- {/if} -->
                   </td>
                   <td>
                     {#if menuItem.args.client[0].args.display.displayText.length < 1}
-                    <input type="text" class="form-control" id="itemImgPth" placeholder="/"  bind:value={menuItem.args.client[0].args.display.imgPath}/>
+                    <input type="text" class="form-control" id="itemImgPth" placeholder="/" bind:value={menuItem.args.client[0].args.display.imgPath}/>
                     {/if}
                   </td>
                   <td>
@@ -218,11 +220,14 @@
                     {/if}
                   </td>
                   <td>
-                      <button class="btn" onclick={() => showCP(menuItem.args.client[0].args.display.textColour, menuItem.id)} style={colButtSet(menuItem.args.client[0].args.display.textColour)}>
-                          <FontAwesomeIcon icon={faPaintBrush}/>
+                    {#if menuItem.args.client[0].args.display.imgPath.length < 1}
+                      <button class="btn" onclick={() => showCP(menuItem.args.client[0].args.display.textColour, menuItem.id)} style={colButtSet(menuItem.args.client[0].args.display.textColour)} data-bs-toggle="tooltip" title="Set Text Colour">
+                          <FontAwesomeIcon icon={faFont}/>
                       </button>
+                    {/if}
                   </td>
                 <td>
+                  <!-- {#if menuItem.args.zapscript.length < 1} -->
                   <select class="form-select" id="itmActData" bind:value={menuItem.args.client[0].args.input.buttons[0].args.actions[0].args.uiPickerID} data-bs-toggle="tooltip" title="Select Menu to Open" data-bs-placement="top">
                     <option value=""></option>  
                     <option value="9999">Reader Main Menu</option>
@@ -233,6 +238,12 @@
                       <option value={id}>{name}</option>
                       {/each}
                   </select>
+                  <!-- {/if} -->
+                </td>
+                <td>
+                    <button type="button" class="btn btn-primary" onclick={() => showMenuItemEdit(menuItem.id)} data-bs-toggle="tooltip" title="Edit Item" data-bs-placement="top">
+                        <FontAwesomeIcon icon={faEllipsis}/>
+                    </button>
                 </td>
               </tr>
               {/each}
@@ -259,3 +270,11 @@
       <button class="btn btn-primary" onclick={() => updateItemRGB()} >OK</button>
   </div>
 </dialog>
+
+{#key currMenuItemID}
+<dialog bind:this={itemEditDialog}>
+    <div class="srchDialog">
+        <MenuItemEdit {itemReturn} bind:currMenuItem> </MenuItemEdit>
+    </div>
+</dialog>
+{/key}

@@ -4,7 +4,7 @@
         min-height: 25vh;
     }
     .table-responsive {
-        max-height: 25vh;
+        max-height: 26vh;
     }
     .srchDialog {
         min-height: 75vh;
@@ -17,23 +17,15 @@
     import { CommonUtils } from "../backend/CommonUtils";
     import { onDestroy, onMount, tick } from 'svelte';
     import { EspUtils } from "../backend/EspUtils";
-    import {v4 as uuidv4} from 'uuid';
     import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
-    import { faEllipsis, faPaintBrush, faSearch, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-    import SearchDialog from './ZapSearch.svelte';
+    import { faEllipsis, faSquarePlus, faTrash } from "@fortawesome/free-solid-svg-icons";
     import MenuEdit from './UIDMenuEdit.svelte';
-    import ColorPicker from 'svelte-awesome-color-picker';
-    let srchDialog: HTMLDialogElement;
     let menuEditDialog: HTMLDialogElement;
-    let showColPicker: HTMLDialogElement;
     let config: ConfigData = $state(EspUtils.getBlank());
     let uidFJson: zapScript = $state(UIDUtils.getNewUIDFileStructure());
     let currUID: string = $state("");
     let currSelMenuID: string = $state("");
     let currSelMenu: zapScriptCmd = $state(UIDUtils.geBlankZapScriptCmd());
-    let currSelMenuClientObject: client = $state(UIDUtils.getNewClient());
-    let currMenuItemID: string = "";
-    let currSrchResult:string = $state("");
     let currMainPickerID: string = $state("");
     let currMainPicker: zapScriptCmd = $state(UIDUtils.geBlankZapScriptCmd());
     let currMainPickerClientObject: client = $state(UIDUtils.getNewClient());
@@ -221,18 +213,6 @@
         return
     }
 
-    function getClientObject(zpSC: zapScriptCmd){
-        if("client" in zpSC.args){
-            let tmpClient = currFirstCmd.args.client.filter((item: {type: string}) => (item.type = "reader"));
-            if(tmpClient.length > 0){
-                return tmpClient[0];
-            } 
-        }
-        let tmpClient: client = UIDUtils.getNewClient();
-        tmpClient.type = "reader";
-        return tmpClient;
-    }
-
     function addNewMenu(){
         let tmpMenu: zapScriptCmd = UIDUtils.getNewZapScriptCmd();
         tmpMenu.cmd = "ui.picker";
@@ -275,19 +255,6 @@
         menuEditDialog.close("true");
     }
 
-    // function searchReturn(srchResult: any): void{
-    //     currSrchResult = srchResult.selectedGame;
-    //     srchDialog.close("true")
-    //     let tmpArr = uidFJson.menus.filter((item: {menuID: string}) => (item.menuID == currSelMenuID));
-    //         if(tmpArr.length > 0){
-    //             let tmpMenu: menu = tmpArr[0];
-    //             let tmpMenuItems = tmpMenu.menuItems.filter((item: {itemID: string}) => (item.itemID == currMenuItemID));
-    //             if(tmpMenuItems.length > 0){
-    //                 let tmpItem: menuItem = tmpMenuItems[0];
-    //                 tmpItem.itemActionData = currSrchResult;
-    //             }
-    //         }
-    // }
     
 </script>
 <div class="text-center">
@@ -327,14 +294,6 @@
             </div>
             {/if}
         </div>
-        <!-- <div class="form-floating col-2">
-            <input type="text" class="form-control" id="menujson" value="{JSON.stringify(uidFJson)}">
-            <label for="menuName">uidFJson JSON</label>
-        </div>
-        <div class="form-floating col-2">
-            <input type="text" class="form-control" id="menujson" value="{JSON.stringify(currMainPicker)}">
-            <label for="menuName">currMainPicker JSON</label>
-        </div> -->
         {#if config.deviceType == "Lilygo"}
             <div class="mt-3 mb-0 pb-0">
                 <h6>Custom Menus</h6>
@@ -403,7 +362,7 @@
 {#key currSelMenuID}
 <dialog bind:this={menuEditDialog}>
     <div class="srchDialog">
-        <MenuEdit {menuReturn} bind:uidFJson {getMenulist} {currSelMenuID}> </MenuEdit>
+        <MenuEdit {menuReturn} bind:uidFJson {currSelMenuID}> </MenuEdit>
     </div>
 </dialog>
 {/key}

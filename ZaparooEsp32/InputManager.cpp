@@ -138,16 +138,16 @@ void InputManager::doRotaryButton(){
       String clkAudio = currMenuItemJson["args"]["client"][0]["args"]["audio"]["onClickAudioPath"];
       doInputEventAudio(clkAudio.c_str());
     }
-  }else if((tmpActionType == "evaluate" && tmpActionData.length() == 0) || (tmpActionType == "evaluate.client" && tmpActionData.length() == 0)){
-    //Serial.println("Do Action From Menu Click: "  + tmpActionData);
     JsonDocument tmpJson = currMenuItemJson["args"]["client"][0]["args"]["input"]["buttons"][0]["args"];
     if(tmpJson["actions"].is<JsonArray>() && !tmpJson["actions"].isNull()){ 
       for (JsonObject action : tmpJson["actions"].as<JsonArray>()) {
         String uiPickID = action["args"]["uiPickerID"];
         String actCmd = action["cmd"];
         String actAudio = action["args"]["audio"]["onClickAudioPath"];
+        String actLaunchAudio = action["args"]["audio"]["launchAudioPath"];
         String actZapScr = action["args"]["zapscript"];
         if(uiPickID.length() > 0 && actCmd == "ui.picker"){
+          //Serial.println("picker: "  + uiPickID);
           setCurrMenu(uiPickID);
           currMenuItemPos = 0;
           showCurrMenuItem();
@@ -156,9 +156,39 @@ void InputManager::doRotaryButton(){
             doInputEventAudio(tmpActionAudio);
           }
         }else if(actCmd == "evaluate" && actZapScr.length() > 0){
-          sendToZap(tmpActionData);
+          //Serial.println("zapcmd: "  + actZapScr);
+          sendToZap(actZapScr);
+          if(actLaunchAudio.length() > 0){
+            const char* tmpActionAudio = actLaunchAudio.c_str();
+            doInputEventAudio(tmpActionAudio);
+          }
+        }
+      }
+    }
+  }else if((tmpActionType == "evaluate" && tmpActionData.length() == 0) || (tmpActionType == "evaluate.client" && tmpActionData.length() == 0)){
+    //Serial.println("Do Action From Menu Click: "  + tmpActionData);
+    JsonDocument tmpJson = currMenuItemJson["args"]["client"][0]["args"]["input"]["buttons"][0]["args"];
+    if(tmpJson["actions"].is<JsonArray>() && !tmpJson["actions"].isNull()){ 
+      for (JsonObject action : tmpJson["actions"].as<JsonArray>()) {
+        String uiPickID = action["args"]["uiPickerID"];
+        String actCmd = action["cmd"];
+        String actAudio = action["args"]["audio"]["onClickAudioPath"];
+        String actLaunchAudio = action["args"]["audio"]["launchAudioPath"];
+        String actZapScr = action["args"]["zapscript"];
+        if(uiPickID.length() > 0 && actCmd == "ui.picker"){
+          //Serial.println("picker: "  + uiPickID);
+          setCurrMenu(uiPickID);
+          currMenuItemPos = 0;
+          showCurrMenuItem();
           if(actAudio.length() > 0){
             const char* tmpActionAudio = actAudio.c_str();
+            doInputEventAudio(tmpActionAudio);
+          }
+        }else if(actCmd == "evaluate" && actZapScr.length() > 0){
+          //Serial.println("zapcmd: "  + actZapScr);
+          sendToZap(actZapScr);
+          if(actLaunchAudio.length() > 0){
+            const char* tmpActionAudio = actLaunchAudio.c_str();
             doInputEventAudio(tmpActionAudio);
           }
         }
@@ -207,15 +237,6 @@ void InputManager::doRotaryTurn(int currDir){
 void InputManager::showCurrMenuItem(){
   currMenuItemJson = currMenuJson["args"]["items"][currMenuItemPos];
   String tmpImgPath = currMenuItemJson["args"]["client"][0]["args"]["display"]["imgPath"].as<String>();
-  String tmpTxtStr = currMenuItemJson["args"]["client"][0]["args"]["display"]["displayText"].as<String>();
-  JsonDocument tmpTxtRGB = currMenuItemJson["args"]["client"][0]["args"]["display"]["textColour"];
-  JsonDocument tmpScrnRBG;
-  tmpScrnRBG["r"] = 255;
-  tmpScrnRBG["g"] = 255;
-  tmpScrnRBG["b"] = 255;
-  const char* tmpTextChar = tmpTxtStr.c_str();
-  Serial.println("Menu Img Path: " + currMenuItemJson["args"]["client"][0]["args"]["display"]["imgPath"].as<String>());
-  Serial.println("Menu Scrn Text: " + currMenuItemJson["args"]["client"][0]["args"]["display"]["displayText"].as<String>());
   //do default menu items check
   if(tmpImgPath == "dispNowPlaying"){
     screenManager->dispNowPlaying();
@@ -224,8 +245,18 @@ void InputManager::showCurrMenuItem(){
   }else if(tmpImgPath == "dispGotoSleep"){
     screenManager->dispGotoSleep();
   }else {
+    String tmpTxtStr = currMenuItemJson["args"]["client"][0]["args"]["display"]["displayText"].as<String>();
+    JsonDocument tmpTxtRGB;
+    tmpTxtRGB["r"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["textColour"]["r"];
+    tmpTxtRGB["g"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["textColour"]["g"];
+    tmpTxtRGB["b"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["textColour"]["b"];
+    JsonDocument tmpScrnRBG;
+    tmpScrnRBG["r"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["screenColour"]["r"];
+    tmpScrnRBG["g"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["screenColour"]["g"];
+    tmpScrnRBG["b"] = currMenuItemJson["args"]["client"][0]["args"]["display"]["screenColour"]["b"];
+    const char* tmpTextChar = tmpTxtStr.c_str();
     if (strlen(tmpTextChar) > 0) {
-      screenManager->drawTextStr(tmpTxtStr, tmpTxtRGB, tmpScrnRBG, 2, 2);
+      screenManager->drawTextStr(tmpTxtStr, tmpTxtRGB, tmpScrnRBG, currMenuItemJson["args"]["client"][0]["args"]["display"]["fontSize"].as<int>(), currMenuItemJson["args"]["client"][0]["args"]["display"]["fontNumber"].as<int>());
     }else{
       screenManager->dispJpgImg(tmpImgPath.c_str());
     }
