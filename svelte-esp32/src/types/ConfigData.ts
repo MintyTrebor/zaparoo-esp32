@@ -54,6 +54,7 @@ export interface ConfigData {
   serialOnly: boolean;
   defaultImgPath: string;
   deviceType: string;
+  bleMode: boolean;
 };
 
 export interface UIDFileJson {

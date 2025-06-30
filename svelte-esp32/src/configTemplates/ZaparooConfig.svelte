@@ -10,7 +10,9 @@
         zapEnabled: config.zapEnabled,
         steamIp: config.steamIp,
         steamEnabled: config.steamEnabled,
-        resetOnRemove: config.resetOnRemove
+        resetOnRemove: config.resetOnRemove,
+        serialOnly: config.serialOnly,
+        bleMode: config.bleMode
       };
         EspUtils.updateConfig(update);
     };
@@ -59,6 +61,16 @@
         <div class="form-check form-switch col-2">
           <input class="form-check-input" type="checkbox" role="switch" id="serialOnly" bind:checked={config.serialOnly}/>
           <label class="form-check-label" for="serialOnly">Serial Only</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="input-group">
+      <div class="input-group-text">
+        <div class="form-check form-switch col-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="bleMode" bind:checked={config.bleMode}/>
+          <label class="form-check-label" for="bleMode">Enable BLE</label>
         </div>
       </div>
     </div>

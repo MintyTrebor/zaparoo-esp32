@@ -20,3 +20,4 @@ ZaparooEsp32/build/esp32.esp32.esp32/ZaparooEsp32.ino.partitions.bin
 /ZaparooEsp32/build
 /webtools/dist
 /webtools/node_modules
+ZaparooEsp32/libraries/

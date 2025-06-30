@@ -17,6 +17,7 @@
 #include "FeedbackManager.h"
 #include "UIDDataManager.h"
 #include "Update.h"
+#include "ZaparooBleReporter.h"
 #include <ezButton.h>
 
 
@@ -65,6 +66,7 @@ String deviceType = "RC522";
 #endif
 
 //Common Setup
+ZaparooBleReporter ble("Zaparoo");
 ESPWebFileManager* fileManager;
 Preferences preferences;
 AsyncWebServer server(80);
@@ -88,6 +90,7 @@ bool zapEnabled = true;
 bool steamEnabled = false;
 bool uidScanMode= false;
 bool serialOnly = false;
+bool bleMode = true;
 String steamIp = "steamOS.local";
 String zapIp = "mister.local";
 String lastSerialCommand = "";
@@ -300,14 +303,15 @@ void writeTagLaunch(String& launchCmd, String& audioLaunchFile, String& audioRem
 bool send(String& gamePath) {
   String message;
   bool sent = false;
-  if (serialOnly) {
+  if (serialOnly || bleMode) {
     lastSerialCommand = "SCAN\ttext=" + gamePath;
     if(!feedback.resetOnRemove){
       lastSerialCommand = lastSerialCommand + "\tremovable=no";
       Serial.println(lastSerialCommand);
     }
+    ble.sendString(lastSerialCommand);
     Serial.flush();
-    message = "Sent game path to serial: " + gamePath;
+    message = "Sent game path to serial and ble: " + gamePath;
     sent = true;
   } else {
     String newURL = ZAP_URL;
@@ -330,13 +334,14 @@ bool send(String& gamePath) {
 bool sendUid(String& uid) {
   String message;
   bool sent = false;
-  if (serialOnly) {
+  if (serialOnly || bleMode) {
     lastSerialCommand = "SCAN\tuid=" + uid;
     if(!feedback.resetOnRemove){
       lastSerialCommand = lastSerialCommand + "\tremovable=no";
     }
     Serial.println(lastSerialCommand);
     Serial.flush();
+    ble.sendString(lastSerialCommand);
     message = "Sent Card/Tag UID: " + uid;
     sent = true;
   } else {
@@ -414,6 +419,9 @@ void setWebConfigData(JsonDocument& cfgData) {
   }
   if(cfgData["data"].containsKey("serialOnly")){
     setPref_Bool("serialOnly", cfgData["data"]["serialOnly"]);
+  }
+  if(cfgData["data"].containsKey("bleMode")){
+    setPref_Bool("bleMode", cfgData["data"]["bleMode"]);
   }
   if(cfgData["data"].containsKey("steamIp")){
     setPref_Str("steamIp", cfgData["data"]["steamIp"]);
@@ -562,6 +570,7 @@ bool readScanner() {
         }
       }
       notifyClients("Tag Removed", "log");
+      ble.sendString("");
       inserted = false;
       tokenScanner->halt();
       return true;
@@ -672,6 +681,10 @@ void setup() {
   steamEnabled = preferences.getBool("steamEnabled", false);
   steamIp = preferences.getString("steamIp", "steamOS.local");
   serialOnly = preferences.getBool("serialOnly", false);
+  bleMode = preferences.getBool("bleMode", false);
+  if(bleMode){
+    ble.setup();
+  }
 #ifdef Lilygo
   scrnMan.init();
   scrnMan.dispDefaultImg("");
@@ -725,8 +738,7 @@ void setup() {
   
   server.on("/saveUIDFile", HTTP_POST, [](AsyncWebServerRequest * request){}, NULL, [](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
     String jsonBody(reinterpret_cast<char*>(data), len);
-    postBufferTxt = postBufferTxt + jsonBody;
-    //Serial.println("Rec Data: " + postBufferTxt);    
+    postBufferTxt = postBufferTxt + jsonBody;  
     if(postBufferTxt.length() == total){
       UidDM.updateUidFileJson(postBufferTxt);
       postBufferTxt = "";
@@ -743,7 +755,6 @@ void setup() {
   }
   fileManager->setServer(&server);
   fileManager->begin();
-  //feedback.createUidMappingFile();
   UidDM.createUidDataDirectory();
 }
 #ifdef Lilygo
@@ -808,14 +819,9 @@ void rotary(void *pvParameters) {
 void battery_task(void *pvParameters) {
   while(1){
     bq27220.getBatteryStatus(&bqBatt);
-    //Serial.println("Batt Status: " + String(bq27220.getStateOfCharge()));
-    //Serial.println("Batt Is Charging: " + String(bq27220.getIsCharging() ? "Charging" : "Discharging"));
-    //Serial.println("Batt Charge: " + String(bq27220.getRemainingCapacity()));
     if(bq27220.getStateOfCharge() < 90 && !bq27220.getIsCharging()){
-      //Serial.println("Triggered Charge");
       pwrMan.initCharging();
     } else if(bq27220.getStateOfCharge() > 90 && bq27220.getIsCharging()){
-      //Serial.println("Triggered Stop Charge");
       pwrMan.stopCharging();
     }
     delay(30000);
